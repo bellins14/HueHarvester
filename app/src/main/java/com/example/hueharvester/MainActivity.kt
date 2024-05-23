@@ -12,13 +12,14 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.viewpager.widget.ViewPager
+import com.google.android.material.tabs.TabLayout
 
 
 class MainActivity : AppCompatActivity() {
-
-    private lateinit var viewPager: ViewPager
     private lateinit var cameraPreview: SurfaceView
     private lateinit var camera: Camera
+    private lateinit var tabLayout: TabLayout
+    private lateinit var viewPager: ViewPager
     private val cameraRequestCode = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -27,8 +28,10 @@ class MainActivity : AppCompatActivity() {
 
         cameraPreview = findViewById(R.id.camera_preview)
         viewPager = findViewById(R.id.viewPager)
+        tabLayout = findViewById(R.id.tabLayout)
 
         setupViewPager(viewPager)
+        tabLayout.setupWithViewPager(viewPager, true)
 
         if (checkCameraPermission()) {
             setupCamera()
@@ -47,15 +50,31 @@ class MainActivity : AppCompatActivity() {
     private fun setupCamera() {
         camera = Camera.open()
         val params = camera.parameters
-        params.setPreviewSize(640, 480)  // TODO: Example size, adjust as needed
-        params.setPreviewFpsRange(15000, 30000)  // TODO: Example range, adjust as needed
+
+        // Get the supported preview sizes
+        val supportedPreviewSizes = params.supportedPreviewSizes
+        val minPreviewSize = supportedPreviewSizes.minByOrNull { it.width * it.height }
+
+        // Get the supported preview FPS ranges
+        val supportedPreviewFpsRanges = params.supportedPreviewFpsRange
+        val minPreviewFpsRange = supportedPreviewFpsRanges.minByOrNull { it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX] }
+
+        // Set the minimum preview size and frame rate
+        minPreviewSize?.let {
+            params.setPreviewSize(it.width, it.height)
+        }
+
+        minPreviewFpsRange?.let {
+            params.setPreviewFpsRange(it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX], it[Camera.Parameters.PREVIEW_FPS_MAX_INDEX])
+        }
+
         camera.parameters = params
         camera.setPreviewDisplay(cameraPreview.holder)
         camera.startPreview()
 
-        camera.setPreviewCallback { data, camera ->
+        /*camera.setPreviewCallbackWithBuffer { data, camera ->
             // TODO: Calculate average color values here
-        }
+        }*/
     }
 
     private fun checkCameraPermission(): Boolean {
@@ -79,6 +98,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onPause() {
         super.onPause()
+        camera.stopPreview()
         camera.release()
     }
 
