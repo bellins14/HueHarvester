@@ -1,3 +1,9 @@
 <resources>
     <string name="app_name">Hue Harvester</string>
+    <string name="RGB_values">RGB Values</string>
+    <string name="line_graph">Line Graph</string>
+
+    <string name="camera_preview_content">Camera Preview section</string>
+    <string name="viewPager_content">ViewPager section</string>
+    <string name="tabLayout_content">TabLayout section</string>
 </resources>
