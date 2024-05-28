@@ -28,7 +28,7 @@ class MainActivity : AppCompatActivity() {
     private val CAMERA_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        //enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
@@ -90,7 +90,10 @@ class MainActivity : AppCompatActivity() {
             val minPreviewFpsRange = supportedPreviewFpsRanges?.minByOrNull { it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX] }
 
             minPreviewFpsRange?.let {
-                params.setPreviewFpsRange(it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX], it[Camera.Parameters.PREVIEW_FPS_MAX_INDEX])
+                params.setPreviewFpsRange(
+                    it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX],
+                    it[Camera.Parameters.PREVIEW_FPS_MAX_INDEX]
+                )
             }
 
             camera?.parameters = params
