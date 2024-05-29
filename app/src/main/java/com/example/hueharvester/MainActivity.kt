@@ -12,7 +12,7 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.Toast
-import androidx.activity.enableEdgeToEdge
+//import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -25,7 +25,6 @@ class MainActivity : AppCompatActivity() {
     private lateinit var tabLayout: TabLayout
     private lateinit var cameraPreview: SurfaceView
     private var camera: Camera? = null
-    private val CAMERA_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
         //enableEdgeToEdge()
@@ -82,7 +81,7 @@ class MainActivity : AppCompatActivity() {
             val supportedPreviewSizes = params?.supportedPreviewSizes
             val minPreviewSize = supportedPreviewSizes?.minByOrNull { it.width * it.height }
 
-            minPreviewSize?.let {
+            minPreviewSize?.let { // TODO: controlla se hai implementato correttamente il let
                 params.setPreviewSize(it.width, it.height)
             }
 
@@ -167,5 +166,9 @@ class MainActivity : AppCompatActivity() {
             releaseCamera()
             setupCameraPreview()
         }
+    }
+
+    companion object {
+        private const val CAMERA_REQUEST_CODE = 100
     }
 }
