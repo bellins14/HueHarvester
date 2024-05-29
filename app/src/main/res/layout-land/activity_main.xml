@@ -14,19 +14,19 @@
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toStartOf="@id/viewPager"
+        app:layout_constraintEnd_toStartOf="@id/view_pager"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_margin="8dp"/>
 
     <!-- ViewPager for switching between RGB values and the graph -->
     <androidx.viewpager.widget.ViewPager
-        android:id="@+id/viewPager"
+        android:id="@+id/view_pager"
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toEndOf="@id/camera_preview"
         app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintBottom_toTopOf="@id/tabLayout"
+        app:layout_constraintBottom_toTopOf="@id/tab_layout"
         android:layout_margin="8dp" />
 
     <!--<com.google.android.material.tabs.TabLayout
@@ -41,15 +41,15 @@
     <!-- TabLayout -->
     <com.google.android.material.tabs.TabLayout
         android:contentDescription=""
-        android:id="@+id/tabLayout"
+        android:id="@+id/tab_layout"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         app:tabGravity="center"
 
-        app:layout_constraintTop_toBottomOf="@id/viewPager"
+        app:layout_constraintTop_toBottomOf="@id/view_pager"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintStart_toStartOf="@id/viewPager"
-        app:layout_constraintEnd_toEndOf="@id/viewPager"
+        app:layout_constraintStart_toStartOf="@id/view_pager"
+        app:layout_constraintEnd_toEndOf="@id/view_pager"
         android:layout_margin="8dp" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

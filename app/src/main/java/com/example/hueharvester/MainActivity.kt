@@ -28,13 +28,13 @@ class MainActivity : AppCompatActivity() {
     private val CAMERA_REQUEST_CODE = 100
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        enableEdgeToEdge()
+        //enableEdgeToEdge()
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
 
         cameraPreview = findViewById(R.id.camera_preview)
-        viewPager = findViewById(R.id.viewPager)
-        tabLayout = findViewById(R.id.tabLayout)
+        viewPager = findViewById(R.id.view_pager)
+        tabLayout = findViewById(R.id.tab_layout)
 
         setupViewPager(viewPager)
         tabLayout.setupWithViewPager(viewPager, true)
