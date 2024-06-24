@@ -12,7 +12,6 @@ import android.view.Surface
 import android.view.SurfaceHolder
 import android.view.SurfaceView
 import android.widget.Toast
-//import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
@@ -23,8 +22,13 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var viewPager: ViewPager
     private lateinit var tabLayout: TabLayout
+    private lateinit var realTimeRGBFragment: RealTimeRGBFragment
     private lateinit var cameraPreview: SurfaceView
     private var camera: Camera? = null
+
+    private var currentAvgRed: Int = 0
+    private var currentAvgGreen: Int = 0
+    private var currentAvgBlue: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         //enableEdgeToEdge()
@@ -38,6 +42,23 @@ class MainActivity : AppCompatActivity() {
         setupViewPager(viewPager)
         tabLayout.setupWithViewPager(viewPager, true)
 
+        viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
+            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {}
+
+            override fun onPageSelected(position: Int) {
+                if (position == 0) {
+                    val adapter = viewPager.adapter as ViewPagerAdapter
+                    realTimeRGBFragment = adapter.getFragment(position) as RealTimeRGBFragment
+                }
+            }
+
+            override fun onPageScrollStateChanged(state: Int) {}
+        })
+
+        // Ottieni il fragment dall'adapter
+        val adapter = viewPager.adapter as ViewPagerAdapter
+        realTimeRGBFragment = adapter.getFragment(0) as RealTimeRGBFragment
+
         if (checkCameraPermission()) {
             setupCameraPreview()
         } else {
@@ -47,7 +68,8 @@ class MainActivity : AppCompatActivity() {
 
     private fun setupViewPager(viewPager: ViewPager) {
         val adapter = ViewPagerAdapter(supportFragmentManager)
-        adapter.addFragment(RealTimeRGBFragment(), getString(R.string.RGB_values))
+        realTimeRGBFragment = RealTimeRGBFragment()
+        adapter.addFragment(realTimeRGBFragment, getString(R.string.RGB_values))
         adapter.addFragment(LineGraphFragment(), getString(R.string.line_graph))
         viewPager.adapter = adapter
     }
@@ -81,10 +103,11 @@ class MainActivity : AppCompatActivity() {
             val supportedPreviewSizes = params?.supportedPreviewSizes
             val minPreviewSize = supportedPreviewSizes?.minByOrNull { it.width * it.height }
 
-            minPreviewSize?.let { // TODO: controlla se hai implementato correttamente il let
+            minPreviewSize?.let { // TODO: cambia in implementazione normale
                 params.setPreviewSize(it.width, it.height)
             }
 
+            // TODO: salva preverences  per diminuire tempo caricamento senza che vengano calcolate ogni volta (a meno che dati app cancellati)
             val supportedPreviewFpsRanges = params?.supportedPreviewFpsRange
             val minPreviewFpsRange = supportedPreviewFpsRanges?.minByOrNull { it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX] }
 
@@ -98,6 +121,16 @@ class MainActivity : AppCompatActivity() {
 
             camera?.setPreviewCallback { data, camera ->
                 // TODO: Calculate average color values here
+                val previewSize = camera.parameters.previewSize
+                val (avgRed, avgGreen, avgBlue) = calculateAverageColor(data, previewSize.width, previewSize.height)
+                runOnUiThread {
+                    currentAvgRed = avgRed
+                    currentAvgGreen = avgGreen
+                    currentAvgBlue = avgBlue
+                    if (this::realTimeRGBFragment.isInitialized && realTimeRGBFragment.isViewCreated) {
+                        realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                    }
+                }
             }
         } catch (e: Exception) {
             Log.e("MainActivity", "Camera setup failed", e)
@@ -166,6 +199,46 @@ class MainActivity : AppCompatActivity() {
             releaseCamera()
             setupCameraPreview()
         }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        // Salva lo stato necessario, come ad esempio il colore corrente
+        outState.putInt("avgRed", currentAvgRed)
+        outState.putInt("avgGreen", currentAvgGreen)
+        outState.putInt("avgBlue", currentAvgBlue)
+    }
+
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        // Ripristina lo stato salvato
+        val avgRed = savedInstanceState.getInt("avgRed")
+        val avgGreen = savedInstanceState.getInt("avgGreen")
+        val avgBlue = savedInstanceState.getInt("avgBlue")
+        realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+    }
+
+    private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
+        var redSum = 0L
+        var greenSum = 0L
+        var blueSum = 0L
+        val pixelCount = width * height
+
+        for (i in 0 until pixelCount step 4) {
+            val red = data[i].toInt() and 0xFF
+            val green = data[i + 1].toInt() and 0xFF
+            val blue = data[i + 2].toInt() and 0xFF
+
+            redSum += red
+            greenSum += green
+            blueSum += blue
+        }
+
+        val avgRed = (redSum / pixelCount).toInt()
+        val avgGreen = (greenSum / pixelCount).toInt()
+        val avgBlue = (blueSum / pixelCount).toInt()
+
+        return Triple(avgRed, avgGreen, avgBlue)
     }
 
     companion object {

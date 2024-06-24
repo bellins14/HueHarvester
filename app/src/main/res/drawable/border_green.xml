@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shape xmlns:android="http://schemas.android.com/apk/res/android">
+    <solid android:color="@android:color/transparent"/>
+    <stroke android:width="2dp" android:color="#00FF00"/> <!-- Colore del bordo -->
+    <!--
+        <corners android:radius="4dp"/> &lt;!&ndash; Arrotondamento degli angoli, opzionale &ndash;&gt;
+    -->
+</shape>

@@ -6,4 +6,6 @@
     <string name="camera_preview_content">Camera Preview section</string>
     <string name="viewPager_content">ViewPager section</string>
     <string name="tabLayout_content">TabLayout section</string>
+
+    <string name="avg_color_txt">Average Color</string>
 </resources>
