@@ -5,6 +5,7 @@ package com.example.hueharvester
 import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
+import android.util.Log
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -18,12 +19,14 @@ class RealTimeRGBFragment : Fragment() {
     private lateinit var blueTextView: TextView
     private lateinit var averageColorTextView: TextView
 
+
     var isViewCreated = false
         private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
+        Log.d(TAG, "RGB Fagment onCreate")
     }
 
     override fun onCreateView(
@@ -38,6 +41,7 @@ class RealTimeRGBFragment : Fragment() {
         averageColorTextView = view.findViewById(R.id.average_color_text_view)
 
         isViewCreated = true
+        Log.d(TAG, "RGB Fagment onCreateView = $isViewCreated")
         return view
     }
 
@@ -45,15 +49,15 @@ class RealTimeRGBFragment : Fragment() {
     fun updateRGBValues(r: Int, g: Int, b: Int) {
         if (isViewCreated) {
             redTextView.apply {
-                text = "R: $r"
+                text = "R = $r"
                 setBackgroundColor(Color.rgb(r, 0, 0))
             }
             greenTextView.apply {
-                text = "G: $g"
+                text = "G = $g"
                 setBackgroundColor(Color.rgb(0, g, 0))
             }
             blueTextView.apply {
-                text = "B: $b"
+                text = "B = $b"
                 setBackgroundColor(Color.rgb(0, 0, b))
             }
             averageColorTextView.apply {
@@ -61,5 +65,15 @@ class RealTimeRGBFragment : Fragment() {
                 setBackgroundColor(Color.rgb(r, g, b))
             }
         }
+    }
+
+    companion object {
+        private const val TAG = "RealTimeRGBFragment"
+    }
+
+    override fun onDetach() {
+        super.onDetach()
+        isViewCreated = false
+        Log.d(TAG, "RGB Fagment onDetach")
     }
 }
