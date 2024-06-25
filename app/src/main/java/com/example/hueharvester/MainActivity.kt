@@ -14,14 +14,21 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.room.Room
 import androidx.viewpager.widget.ViewPager
+import com.github.mikephil.charting.data.Entry
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.DelicateCoroutinesApi
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.launch
 
 class MainActivity : AppCompatActivity() {
-
+    private lateinit var db: AppDatabase
+    private lateinit var colorDataDao: ColorDataDao
     private lateinit var viewPager: ViewPager
     private lateinit var tabLayout: TabLayout
     private lateinit var realTimeRGBFragment: RealTimeRGBFragment
+    private lateinit var lineGraphFragment: LineGraphFragment
     private lateinit var cameraPreview: SurfaceView
     private var camera: Camera? = null
 
@@ -42,12 +49,22 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onCreate")
         setContentView(R.layout.activity_main)
 
+        // Inizializza il database Room
+        db = Room.databaseBuilder(
+            applicationContext,
+            AppDatabase::class.java, "color_data_db"
+        ).build()
+        colorDataDao = db.colorDataDao()
+
         cameraPreview = findViewById(R.id.camera_preview)
         viewPager = findViewById(R.id.view_pager)
         tabLayout = findViewById(R.id.tab_layout)
 
         setupViewPager(viewPager)
         tabLayout.setupWithViewPager(viewPager, true)
+
+        // Carica i dati recenti e aggiorna il grafico
+        loadRecentDataAndUpdateGraph()
 
         viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
@@ -79,11 +96,42 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    private fun loadRecentDataAndUpdateGraph() {
+        GlobalScope.launch {
+            val currentTime = System.currentTimeMillis()
+            val timeLimit = currentTime - 5 * 60 * 1000
+            val recentData = colorDataDao.getRecentColorData(timeLimit)
+
+            // Converte i dati per il grafico
+            val redEntries = recentData.map { Entry(it.timestamp.toFloat(), it.red.toFloat()) }
+            val greenEntries = recentData.map { Entry(it.timestamp.toFloat(), it.green.toFloat()) }
+            val blueEntries = recentData.map { Entry(it.timestamp.toFloat(), it.blue.toFloat()) }
+
+            runOnUiThread {
+                lineGraphFragment.updateGraph(redEntries, greenEntries, blueEntries)
+            }
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun addDataPoint(r: Int, g: Int, b: Int) {
+        val currentTime = System.currentTimeMillis()
+        val colorData = ColorData(timestamp = currentTime, red = r, green = g, blue = b)
+
+        // Salva il nuovo punto dati nel database Room
+        GlobalScope.launch {
+            colorDataDao.insert(colorData)
+            loadRecentDataAndUpdateGraph()
+        }
+    }
+
     private fun setupViewPager(viewPager: ViewPager) {
         val adapter = ViewPagerAdapter(supportFragmentManager)
         realTimeRGBFragment = RealTimeRGBFragment()
+        lineGraphFragment = LineGraphFragment()
         adapter.addFragment(realTimeRGBFragment, getString(R.string.RGB_values))
-        adapter.addFragment(LineGraphFragment(), getString(R.string.line_graph))
+        adapter.addFragment(lineGraphFragment, getString(R.string.line_graph))
         viewPager.adapter = adapter
     }
 
@@ -167,6 +215,7 @@ class MainActivity : AppCompatActivity() {
                         currentAvgBlue = avgBlue
                         if (realTimeRGBFragment.view != null) {
                             realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                            addDataPoint(avgRed, avgGreen, avgBlue)
                         }
 
                         //Log.d(TAG, "Preview callback")
