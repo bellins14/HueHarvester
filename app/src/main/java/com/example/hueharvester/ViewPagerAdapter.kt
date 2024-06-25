@@ -5,8 +5,9 @@ package com.example.hueharvester
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentPagerAdapter
+import androidx.fragment.app.FragmentStatePagerAdapter
 
-class ViewPagerAdapter(manager: FragmentManager) : FragmentPagerAdapter(manager) {
+class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(manager) {
 
     private val fragmentList: MutableList<Fragment> = ArrayList()
     private val fragmentTitleList: MutableList<String> = ArrayList()

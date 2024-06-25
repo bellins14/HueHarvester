@@ -1,6 +1,7 @@
 plugins {
-    alias(libs.plugins.androidApplication)
-    alias(libs.plugins.jetbrainsKotlinAndroid)
+    id 'com.android.application'
+    id 'org.jetbrains.kotlin.android'
+    id "org.jetbrains.kotlin.kapt" version "2.0.0"
 }
 
 android {
@@ -30,9 +31,21 @@ android {
     kotlinOptions {
         jvmTarget = '1.8'
     }
+    kotlin {
+        sourceSets {
+            main {
+                kotlin.srcDir("build/generated/ksp/main/kotlin")
+            }
+        }
+    }
 }
 
 dependencies {
+    kapt 'groupId:artifactId:version'
+    def room_version = "2.6.1"
+    implementation "androidx.room:room-runtime:$room_version"
+    annotationProcessor "androidx.room:room-compiler:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
     implementation libs.material.v130
     implementation libs.mpandroidchart
     implementation libs.androidx.core.ktx

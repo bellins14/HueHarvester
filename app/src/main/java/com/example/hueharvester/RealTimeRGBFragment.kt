@@ -21,12 +21,12 @@ class RealTimeRGBFragment : Fragment() {
 
 
     var isViewCreated = false
-        private set
+        //private set
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
-        Log.d(TAG, "RGB Fagment onCreate")
+        Log.d(TAG, "RGB Fragment onCreate")
     }
 
     override fun onCreateView(
@@ -41,39 +41,37 @@ class RealTimeRGBFragment : Fragment() {
         averageColorTextView = view.findViewById(R.id.average_color_text_view)
 
         isViewCreated = true
-        Log.d(TAG, "RGB Fagment onCreateView = $isViewCreated")
+        Log.d(TAG, "RGB Fragment onCreateView = $isViewCreated")
         return view
     }
 
     @SuppressLint("SetTextI18n")
     fun updateRGBValues(r: Int, g: Int, b: Int) {
-        if (isViewCreated) {
-            redTextView.apply {
-                text = "R = $r"
-                setBackgroundColor(Color.rgb(r, 0, 0))
-            }
-            greenTextView.apply {
-                text = "G = $g"
-                setBackgroundColor(Color.rgb(0, g, 0))
-            }
-            blueTextView.apply {
-                text = "B = $b"
-                setBackgroundColor(Color.rgb(0, 0, b))
-            }
-            averageColorTextView.apply {
-                text = "Average Color"
-                setBackgroundColor(Color.rgb(r, g, b))
-            }
+        redTextView.apply {
+            text = "R = $r"
+            setBackgroundColor(Color.rgb(r, 0, 0))
         }
-    }
-
-    companion object {
-        private const val TAG = "RealTimeRGBFragment"
+        greenTextView.apply {
+            text = "G = $g"
+            setBackgroundColor(Color.rgb(0, g, 0))
+        }
+        blueTextView.apply {
+            text = "B = $b"
+            setBackgroundColor(Color.rgb(0, 0, b))
+        }
+        averageColorTextView.apply {
+            text = "Average Color"
+            setBackgroundColor(Color.rgb(r, g, b))
+        }
     }
 
     override fun onDetach() {
         super.onDetach()
         isViewCreated = false
-        Log.d(TAG, "RGB Fagment onDetach")
+        Log.d(TAG, "RGB Fragment onDetach")
+    }
+
+    companion object {
+        private const val TAG = "RealTimeRGBFragment"
     }
 }

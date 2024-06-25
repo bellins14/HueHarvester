@@ -165,7 +165,9 @@ class MainActivity : AppCompatActivity() {
                         currentAvgRed = avgRed
                         currentAvgGreen = avgGreen
                         currentAvgBlue = avgBlue
-                        realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                        if (realTimeRGBFragment.view != null) {
+                            realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                        }
 
                         //Log.d(TAG, "Preview callback")
                     }
@@ -224,6 +226,29 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
+        var redSum = 0L
+        var greenSum = 0L
+        var blueSum = 0L
+        val pixelCount = width * height
+
+        for (i in data.indices step 4) {
+            val red = data[i].toInt() and 0xFF
+            val green = data[i + 1].toInt() and 0xFF
+            val blue = data[i + 2].toInt() and 0xFF
+
+            redSum += red
+            greenSum += green
+            blueSum += blue
+        }
+
+        val avgRed = (redSum / pixelCount).toInt()
+        val avgGreen = (greenSum / pixelCount).toInt()
+        val avgBlue = (blueSum / pixelCount).toInt()
+
+        return Triple(avgRed, avgGreen, avgBlue)
+    }
+
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "onPause")
@@ -261,11 +286,12 @@ class MainActivity : AppCompatActivity() {
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-
+        Log.d(TAG, "onSaveInstanceState")
         outState.putInt("avgRed", currentAvgRed)
         outState.putInt("avgGreen", currentAvgGreen)
         outState.putInt("avgBlue", currentAvgBlue)
-        Log.d(TAG, "onSaveInstanceState")
+
+        supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
 
         savedPreviewSize?.let{
             outState.putInt("previewWidth", it.width)
@@ -274,7 +300,6 @@ class MainActivity : AppCompatActivity() {
         savedPreviewFpsRange?.let{
             outState.putIntArray("previewFpsRange", it)
         }
-
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
@@ -283,34 +308,11 @@ class MainActivity : AppCompatActivity() {
         currentAvgRed = savedInstanceState.getInt("avgRed")
         currentAvgGreen = savedInstanceState.getInt("avgGreen")
         currentAvgBlue = savedInstanceState.getInt("avgBlue")
+
+        realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
+
         savedPreviewSize = camera?.Size(savedInstanceState.getInt("previewWidth"), savedInstanceState.getInt("previewHeight"))
         savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")
-        //realTimeRGBFragment.updateRGBValues(currentAvgRed, currentAvgGreen, currentAvgBlue)
-        if(realTimeRGBFragment.isViewCreated) Log.d(TAG, "RGBFragment restored: $currentAvgRed, $currentAvgGreen, $currentAvgBlue")
-
-    }
-
-    private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
-        var redSum = 0L
-        var greenSum = 0L
-        var blueSum = 0L
-        val pixelCount = width * height
-
-        for (i in data.indices step 4) {
-            val red = data[i].toInt() and 0xFF
-            val green = data[i + 1].toInt() and 0xFF
-            val blue = data[i + 2].toInt() and 0xFF
-
-            redSum += red
-            greenSum += green
-            blueSum += blue
-        }
-
-        val avgRed = (redSum / pixelCount).toInt()
-        val avgGreen = (greenSum / pixelCount).toInt()
-        val avgBlue = (blueSum / pixelCount).toInt()
-
-        return Triple(avgRed, avgGreen, avgBlue)
     }
 
     companion object {
