@@ -4,7 +4,6 @@ package com.example.hueharvester
 
 import android.Manifest
 import android.content.pm.PackageManager
-import android.content.res.Configuration
 import android.hardware.Camera
 import android.os.Bundle
 import android.util.Log
