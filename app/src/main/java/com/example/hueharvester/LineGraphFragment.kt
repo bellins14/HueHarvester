@@ -10,6 +10,8 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.github.mikephil.charting.charts.LineChart
+import com.github.mikephil.charting.components.XAxis
+import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
@@ -17,13 +19,12 @@ import com.github.mikephil.charting.data.LineDataSet
 class LineGraphFragment : Fragment() {
 
     private lateinit var lineChart: LineChart
-    private var rDataList: MutableList<Entry> = ArrayList()
-    private var gDataList: MutableList<Entry> = ArrayList()
-    private var bDataList: MutableList<Entry> = ArrayList()
+    var creationTimeMillis: Long = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
+        creationTimeMillis = System.currentTimeMillis()
         Log.d(TAG, "LineGraphFragment onCreate")
     }
 
@@ -39,34 +40,40 @@ class LineGraphFragment : Fragment() {
         lineChart.setTouchEnabled(true)
         lineChart.isDragEnabled = true
         lineChart.setScaleEnabled(true)
-        lineChart.setPinchZoom(true)
-        //lineChart.setDrawGridBackground(true)
-        //lineChart.xAxis.setGranularity(1f)
-
-        updateGraph(rDataList, gDataList, bDataList, false)
+        lineChart.setPinchZoom(false)
+        lineChart.xAxis.isEnabled = true
+        lineChart.xAxis.setAvoidFirstLastClipping(true)
+        lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
 
         Log.d(TAG, "LineGraphFragment onCreateView")
         return view
     }
 
-    fun updateGraph(redData: List<Entry>, greenData: List<Entry>, blueData: List<Entry>, saveData: Boolean) {
+    fun updateGraph(redData: List<Entry>, greenData: List<Entry>, blueData: List<Entry>) {
+        //Collections.sort(redData, EntryXComparator())
         val redDataSet = LineDataSet(redData, "Red")
         redDataSet.color = Color.RED
+        redDataSet.axisDependency = YAxis.AxisDependency.LEFT
+        redDataSet.setDrawCircles(false)
+        //redDataSet.lineWidth = 2f
 
+        //Collections.sort(greenData, EntryXComparator())
         val greenDataSet = LineDataSet(greenData, "Green")
         greenDataSet.color = Color.GREEN
+        greenDataSet.axisDependency = YAxis.AxisDependency.LEFT
+        greenDataSet.setDrawCircles(false)
+        //greenDataSet.lineWidth = 2f
 
+        //Collections.sort(blueData, EntryXComparator())
         val blueDataSet = LineDataSet(blueData, "Blue")
         blueDataSet.color = Color.BLUE
-
-        if (saveData) {
-            rDataList = redData.toMutableList()
-            gDataList = greenData.toMutableList()
-            bDataList = blueData.toMutableList()
-        }
+        blueDataSet.axisDependency = YAxis.AxisDependency.LEFT
+        blueDataSet.setDrawCircles(false)
+        //blueDataSet.lineWidth = 2f
 
         val lineData = LineData(redDataSet, greenDataSet, blueDataSet)
         lineChart.data = lineData
+        lineChart.moveViewToX(lineData.entryCount.toFloat())
         lineChart.invalidate()  // Refresh the chart
 
         //Log.d(TAG, "LineGraphFragment updateGraph")

@@ -50,9 +50,9 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         if (!OpenCVLoader.initDebug())
-            Log.e(TAG, "Unable to load OpenCV!");
+            Log.e(TAG, "Unable to load OpenCV!")
         else
-            Log.d(TAG, "OpenCV loaded Successfully!");
+            Log.d(TAG, "OpenCV loaded Successfully!")
 
         cameraPreview = findViewById(R.id.camera_preview)
         viewPager = findViewById(R.id.view_pager)
@@ -84,6 +84,7 @@ class MainActivity : AppCompatActivity() {
         val adapter = viewPager.adapter as ViewPagerAdapter
         realTimeRGBFragment = adapter.getFragment(0) as RealTimeRGBFragment
         lineGraphFragment = adapter.getFragment(1) as LineGraphFragment
+
 
         if (checkCameraPermission()) {
             Log.d(TAG, "Camera permission granted")
@@ -205,13 +206,19 @@ class MainActivity : AppCompatActivity() {
 
     private fun addDataPoint(avgRed: Int, avgGreen: Int, avgBlue: Int) {
         val timestamp = System.currentTimeMillis()
-        val redEntry = Entry(timestamp.toFloat(), avgRed.toFloat())
+        val chartCreationTime = lineGraphFragment.creationTimeMillis
+        val currentTime = convertMillisToMinutes(timestamp-chartCreationTime)
+
+        val redEntry = Entry(currentTime, avgRed.toFloat())
         redData.add(redEntry)
-        val greenEntry = Entry(timestamp.toFloat(), avgGreen.toFloat())
+
+        val greenEntry = Entry(currentTime, avgGreen.toFloat())
         greenData.add(greenEntry)
-        val blueEntry = Entry(timestamp.toFloat(), avgBlue.toFloat())
+
+        val blueEntry = Entry(currentTime, avgBlue.toFloat())
         blueData.add(blueEntry)
-        lineGraphFragment.updateGraph(redData, greenData, blueData, true)
+
+        lineGraphFragment.updateGraph(redData, greenData, blueData)
     }
 
     private fun adjustCameraOrientation() {
@@ -288,6 +295,11 @@ class MainActivity : AppCompatActivity() {
         return Triple(avgRed, avgGreen, avgBlue)
     }
 
+    private fun convertMillisToMinutes(millis: Long): Float {
+        val seconds = millis / 1000.0f
+        return seconds / 60.0f
+    }
+
 
     override fun onPause() {
         super.onPause()
@@ -330,6 +342,14 @@ class MainActivity : AppCompatActivity() {
 
         supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
         supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
+        val rEntryArray = redData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
+        outState.putSerializable("redData", rEntryArray)
+        val gEntryArray = greenData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
+        outState.putSerializable("greenData", gEntryArray)
+        val bEntryArray = blueData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
+        outState.putSerializable("blueData", bEntryArray)
+
+
 
         savedPreviewSize?.let{
             outState.putInt("previewWidth", it.width)
@@ -346,6 +366,18 @@ class MainActivity : AppCompatActivity() {
 
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
         lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
+        val savedRedEntries = savedInstanceState.getSerializable("redData") as? Array<FloatArray>
+        savedRedEntries?.let {
+            redData = savedRedEntries.map { Entry(it[0], it[1]) }.toMutableList()
+        }
+        val savedGreenEntries = savedInstanceState.getSerializable("greenData") as? Array<FloatArray>
+        savedGreenEntries?.let {
+            greenData = savedGreenEntries.map { Entry(it[0], it[1]) }.toMutableList()
+        }
+        val savedBlueEntries = savedInstanceState.getSerializable("blueData") as? Array<FloatArray>
+        savedBlueEntries?.let {
+            blueData = savedBlueEntries.map { Entry(it[0], it[1]) }.toMutableList()
+        }
 
         savedPreviewSize = camera?.Size(savedInstanceState.getInt("previewWidth"), savedInstanceState.getInt("previewHeight"))
         savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")
