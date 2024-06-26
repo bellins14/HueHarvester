@@ -14,27 +14,22 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
-import androidx.room.Room
 import androidx.viewpager.widget.ViewPager
 import com.github.mikephil.charting.data.Entry
 import com.google.android.material.tabs.TabLayout
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
+import org.opencv.android.OpenCVLoader
+import org.opencv.core.CvType
+import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
+
 
 class MainActivity : AppCompatActivity() {
-    private lateinit var db: AppDatabase
-    private lateinit var colorDataDao: ColorDataDao
     private lateinit var viewPager: ViewPager
     private lateinit var tabLayout: TabLayout
     private lateinit var realTimeRGBFragment: RealTimeRGBFragment
     private lateinit var lineGraphFragment: LineGraphFragment
     private lateinit var cameraPreview: SurfaceView
     private var camera: Camera? = null
-
-    private var currentAvgRed: Int = 0
-    private var currentAvgGreen: Int = 0
-    private var currentAvgBlue: Int = 0
 
     private var isSurfaceCreated = false
     private var previousSurfaceWidth = 0
@@ -44,27 +39,28 @@ class MainActivity : AppCompatActivity() {
     private var savedPreviewSize: Camera.Size? = null
     private var savedPreviewFpsRange: IntArray? = null
 
+    private var redData: MutableList<Entry> = ArrayList()
+    private var greenData: MutableList<Entry> = ArrayList()
+    private var blueData: MutableList<Entry> = ArrayList()
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         Log.d(TAG, "onCreate")
+
         setContentView(R.layout.activity_main)
 
-        // Inizializza il database Room
-        db = Room.databaseBuilder(
-            applicationContext,
-            AppDatabase::class.java, "color_data_db"
-        ).build()
-        colorDataDao = db.colorDataDao()
+        if (!OpenCVLoader.initDebug())
+            Log.e(TAG, "Unable to load OpenCV!");
+        else
+            Log.d(TAG, "OpenCV loaded Successfully!");
 
         cameraPreview = findViewById(R.id.camera_preview)
         viewPager = findViewById(R.id.view_pager)
         tabLayout = findViewById(R.id.tab_layout)
 
         setupViewPager(viewPager)
-        tabLayout.setupWithViewPager(viewPager, true)
 
-        // Carica i dati recenti e aggiorna il grafico
-        loadRecentDataAndUpdateGraph()
+        tabLayout.setupWithViewPager(viewPager, true)
 
         viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
             override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
@@ -72,11 +68,11 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onPageSelected(position: Int) {
-                Log.d(TAG, "onPageSelected")
+                //Log.d(TAG, "onPageSelected")
                 if (position == 0) {
-                    val adapter = viewPager.adapter as ViewPagerAdapter
-                    realTimeRGBFragment = adapter.getFragment(position) as RealTimeRGBFragment
                     Log.d(TAG, "RealTimeRGBFragment selected")
+                } else if (position == 1) {
+                    Log.d(TAG, "LineGraphFragment selected")
                 }
             }
 
@@ -87,6 +83,7 @@ class MainActivity : AppCompatActivity() {
 
         val adapter = viewPager.adapter as ViewPagerAdapter
         realTimeRGBFragment = adapter.getFragment(0) as RealTimeRGBFragment
+        lineGraphFragment = adapter.getFragment(1) as LineGraphFragment
 
         if (checkCameraPermission()) {
             Log.d(TAG, "Camera permission granted")
@@ -96,35 +93,6 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun loadRecentDataAndUpdateGraph() {
-        GlobalScope.launch {
-            val currentTime = System.currentTimeMillis()
-            val timeLimit = currentTime - 5 * 60 * 1000
-            val recentData = colorDataDao.getRecentColorData(timeLimit)
-
-            // Converte i dati per il grafico
-            val redEntries = recentData.map { Entry(it.timestamp.toFloat(), it.red.toFloat()) }
-            val greenEntries = recentData.map { Entry(it.timestamp.toFloat(), it.green.toFloat()) }
-            val blueEntries = recentData.map { Entry(it.timestamp.toFloat(), it.blue.toFloat()) }
-
-            runOnUiThread {
-                lineGraphFragment.updateGraph(redEntries, greenEntries, blueEntries)
-            }
-        }
-    }
-
-    @OptIn(DelicateCoroutinesApi::class)
-    fun addDataPoint(r: Int, g: Int, b: Int) {
-        val currentTime = System.currentTimeMillis()
-        val colorData = ColorData(timestamp = currentTime, red = r, green = g, blue = b)
-
-        // Salva il nuovo punto dati nel database Room
-        GlobalScope.launch {
-            colorDataDao.insert(colorData)
-            loadRecentDataAndUpdateGraph()
-        }
-    }
 
     private fun setupViewPager(viewPager: ViewPager) {
         val adapter = ViewPagerAdapter(supportFragmentManager)
@@ -175,7 +143,7 @@ class MainActivity : AppCompatActivity() {
                     camera = Camera.open()
                     isCameraReleased = false
                 } /*else {
-                    camera?.startPreview()
+                camera?.startPreview()
                 }*/
                 adjustCameraOrientation()
                 val params = camera?.parameters
@@ -195,9 +163,13 @@ class MainActivity : AppCompatActivity() {
                     params?.setPreviewFpsRange(it[0], it[1])
                 } ?: run {
                     val supportedPreviewFpsRanges = params?.supportedPreviewFpsRange
-                    val minPreviewFpsRange = supportedPreviewFpsRanges?.minByOrNull { it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX] }
+                    val minPreviewFpsRange =
+                        supportedPreviewFpsRanges?.minByOrNull { it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX] }
                     minPreviewFpsRange?.let {
-                        params.setPreviewFpsRange(it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX], it[Camera.Parameters.PREVIEW_FPS_MAX_INDEX])
+                        params.setPreviewFpsRange(
+                            it[Camera.Parameters.PREVIEW_FPS_MIN_INDEX],
+                            it[Camera.Parameters.PREVIEW_FPS_MAX_INDEX]
+                        )
                         savedPreviewFpsRange = it
                     }
                 }
@@ -208,16 +180,18 @@ class MainActivity : AppCompatActivity() {
 
                 camera?.setPreviewCallback { data, camera ->
                     val previewSize = camera.parameters.previewSize
-                    val (avgRed, avgGreen, avgBlue) = calculateAverageColor(data, previewSize.width, previewSize.height)
+                    val (avgRed, avgGreen, avgBlue) = calculateAverageColor(
+                        data,
+                        previewSize.width,
+                        previewSize.height
+                    )
                     runOnUiThread {
-                        currentAvgRed = avgRed
-                        currentAvgGreen = avgGreen
-                        currentAvgBlue = avgBlue
                         if (realTimeRGBFragment.view != null) {
                             realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                        }
+                        if (lineGraphFragment.view != null) {
                             addDataPoint(avgRed, avgGreen, avgBlue)
                         }
-
                         //Log.d(TAG, "Preview callback")
                     }
                 }
@@ -227,6 +201,17 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Camera setup failed", e)
             }
         }.start()
+    }
+
+    private fun addDataPoint(avgRed: Int, avgGreen: Int, avgBlue: Int) {
+        val timestamp = System.currentTimeMillis()
+        val redEntry = Entry(timestamp.toFloat(), avgRed.toFloat())
+        redData.add(redEntry)
+        val greenEntry = Entry(timestamp.toFloat(), avgGreen.toFloat())
+        greenData.add(greenEntry)
+        val blueEntry = Entry(timestamp.toFloat(), avgBlue.toFloat())
+        blueData.add(blueEntry)
+        lineGraphFragment.updateGraph(redData, greenData, blueData, true)
     }
 
     private fun adjustCameraOrientation() {
@@ -276,19 +261,24 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
+        val yuv = Mat(height + height / 2, width, CvType.CV_8UC1)
+        yuv.put(0, 0, data)
+
+        val rgb = Mat()
+        Imgproc.cvtColor(yuv, rgb, Imgproc.COLOR_YUV2RGB_NV21, 3)
+
         var redSum = 0L
         var greenSum = 0L
         var blueSum = 0L
         val pixelCount = width * height
 
-        for (i in data.indices step 4) {
-            val red = data[i].toInt() and 0xFF
-            val green = data[i + 1].toInt() and 0xFF
-            val blue = data[i + 2].toInt() and 0xFF
-
-            redSum += red
-            greenSum += green
-            blueSum += blue
+        for (y in 0 until height) {
+            for (x in 0 until width) {
+                val pixel = rgb.get(y, x)
+                redSum += pixel[0].toInt()
+                greenSum += pixel[1].toInt()
+                blueSum += pixel[2].toInt()
+            }
         }
 
         val avgRed = (redSum / pixelCount).toInt()
@@ -297,6 +287,7 @@ class MainActivity : AppCompatActivity() {
 
         return Triple(avgRed, avgGreen, avgBlue)
     }
+
 
     override fun onPause() {
         super.onPause()
@@ -336,11 +327,9 @@ class MainActivity : AppCompatActivity() {
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState")
-        outState.putInt("avgRed", currentAvgRed)
-        outState.putInt("avgGreen", currentAvgGreen)
-        outState.putInt("avgBlue", currentAvgBlue)
 
         supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
+        supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
 
         savedPreviewSize?.let{
             outState.putInt("previewWidth", it.width)
@@ -354,11 +343,9 @@ class MainActivity : AppCompatActivity() {
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         Log.d(TAG, "onRestoreInstanceState")
         super.onRestoreInstanceState(savedInstanceState)
-        currentAvgRed = savedInstanceState.getInt("avgRed")
-        currentAvgGreen = savedInstanceState.getInt("avgGreen")
-        currentAvgBlue = savedInstanceState.getInt("avgBlue")
 
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
+        lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
 
         savedPreviewSize = camera?.Size(savedInstanceState.getInt("previewWidth"), savedInstanceState.getInt("previewHeight"))
         savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")

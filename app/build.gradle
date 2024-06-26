@@ -2,6 +2,7 @@ plugins {
     id 'com.android.application'
     id 'org.jetbrains.kotlin.android'
     id 'kotlin-kapt'
+
 }
 
 android {
@@ -48,6 +49,8 @@ dependencies {
 
     // MPAndroidChart
     implementation libs.mpandroidchart
+
+    implementation 'com.quickbirdstudios:opencv:4.5.3.0'
 
     // AndroidX libraries
     implementation libs.androidx.core.ktx.v190

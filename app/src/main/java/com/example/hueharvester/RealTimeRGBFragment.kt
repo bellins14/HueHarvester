@@ -19,14 +19,10 @@ class RealTimeRGBFragment : Fragment() {
     private lateinit var blueTextView: TextView
     private lateinit var averageColorTextView: TextView
 
-
-    var isViewCreated = false
-        //private set
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
-        Log.d(TAG, "RGB Fragment onCreate")
+        Log.d(TAG, "ReaTimeRGBFragment onCreate")
     }
 
     override fun onCreateView(
@@ -40,8 +36,7 @@ class RealTimeRGBFragment : Fragment() {
         blueTextView = view.findViewById(R.id.blue_text_view)
         averageColorTextView = view.findViewById(R.id.average_color_text_view)
 
-        isViewCreated = true
-        Log.d(TAG, "RGB Fragment onCreateView = $isViewCreated")
+        Log.d(TAG, "ReaTimeRGBFragment onCreateView")
         return view
     }
 
@@ -67,8 +62,7 @@ class RealTimeRGBFragment : Fragment() {
 
     override fun onDetach() {
         super.onDetach()
-        isViewCreated = false
-        Log.d(TAG, "RGB Fragment onDetach")
+        Log.d(TAG, "ReaTimeRGBFragment onDetach")
     }
 
     companion object {
