@@ -366,17 +366,18 @@ class MainActivity : AppCompatActivity() {
 
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
         lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
+
         val savedRedEntries = savedInstanceState.getSerializable("redData") as? Array<FloatArray>
         savedRedEntries?.let {
-            redData = savedRedEntries.map { Entry(it[0], it[1]) }.toMutableList()
+            redData = it.map { e -> Entry(e[0], e[1]) }.toMutableList()
         }
         val savedGreenEntries = savedInstanceState.getSerializable("greenData") as? Array<FloatArray>
         savedGreenEntries?.let {
-            greenData = savedGreenEntries.map { Entry(it[0], it[1]) }.toMutableList()
+            greenData = it.map { e -> Entry(e[0], e[1]) }.toMutableList()
         }
         val savedBlueEntries = savedInstanceState.getSerializable("blueData") as? Array<FloatArray>
         savedBlueEntries?.let {
-            blueData = savedBlueEntries.map { Entry(it[0], it[1]) }.toMutableList()
+            blueData = it.map { e -> Entry(e[0], e[1]) }.toMutableList()
         }
 
         savedPreviewSize = camera?.Size(savedInstanceState.getInt("previewWidth"), savedInstanceState.getInt("previewHeight"))
