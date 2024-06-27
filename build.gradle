@@ -19,4 +19,5 @@ tasks.register('clean', Delete) {
 
 ext {
     roomVersion = '2.6.1'
+    lifecycleVersion = '2.7.0'
 }

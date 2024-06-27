@@ -5,8 +5,8 @@ import androidx.room.PrimaryKey
 
 @Entity(tableName = "color_data")
 data class ColorData(
-    @PrimaryKey(autoGenerate = true) val id: Long = 0,
-    val timestamp: Long,
+    @PrimaryKey(autoGenerate = true) val id: Int = 0,
+    val timestamp: Float,
     val red: Int,
     val green: Int,
     val blue: Int

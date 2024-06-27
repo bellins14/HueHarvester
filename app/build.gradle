@@ -42,21 +42,27 @@ android {
 }
 
 dependencies {
-    // Room components
-    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
-    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
-    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
-
-    // MPAndroidChart
-    implementation libs.mpandroidchart
-
-    implementation 'com.quickbirdstudios:opencv:4.5.3.0'
-
     // AndroidX libraries
     implementation libs.androidx.core.ktx.v190
     implementation libs.androidx.appcompat.v170
     implementation libs.material.v180
     implementation libs.androidx.activity.ktx
+
+    // Room components
+    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
+    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
+    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
+
+    // Lifecycle components
+    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
+    implementation "androidx.lifecycle:lifecycle-common-java8:$rootProject.lifecycleVersion"
+
+    // MPAndroidChart
+    implementation libs.mpandroidchart
+
+    // OpenCV
+    implementation 'com.quickbirdstudios:opencv:4.5.3.0'
+
 
     // Testing
     testImplementation libs.junit
