@@ -14,9 +14,12 @@ import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
 import com.github.mikephil.charting.data.Entry
 import com.google.android.material.tabs.TabLayout
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -39,6 +42,11 @@ class MainActivity : AppCompatActivity() {
     private var savedPreviewSize: Camera.Size? = null
     private var savedPreviewFpsRange: IntArray? = null
 
+    private val applicationScope = lifecycleScope
+    private lateinit var database: AppDatabase
+    private lateinit var repository: ColorDataRepository
+    //private var creationTime: Float = 0f
+
     private var redData: MutableList<Entry> = ArrayList()
     private var greenData: MutableList<Entry> = ArrayList()
     private var blueData: MutableList<Entry> = ArrayList()
@@ -49,6 +57,11 @@ class MainActivity : AppCompatActivity() {
 
         setContentView(R.layout.activity_main)
 
+        // Initialize database
+        database = AppDatabase.getDatabase(this, applicationScope)
+        repository = ColorDataRepository(database.colorDataDao())
+
+        // Initialize OpenCV
         if (!OpenCVLoader.initDebug())
             Log.e(TAG, "Unable to load OpenCV!")
         else
@@ -91,6 +104,18 @@ class MainActivity : AppCompatActivity() {
             setupCameraPreview()
         } else {
             requestCameraPermission()
+        }
+
+        applicationScope.launch {
+            /*val startTime = lineGraphFragment.creationTimeMillis - (5 * 60 * 1000) // 5 minutes ago
+            lineGraphFragment.initializeGraph(repository.getDataFromLastFiveMinutes(startTime))*/
+
+            while (true) {
+                val lastData = repository.getLastInsertedData()
+                lastData?.let { repository.deleteOldData(it.timestamp - (5 * 60 * 1000) ) }
+                Log.d(TAG, "Deleted old data")
+                delay(60000)
+            }
         }
     }
 
@@ -143,9 +168,7 @@ class MainActivity : AppCompatActivity() {
                 if (isCameraReleased) {
                     camera = Camera.open()
                     isCameraReleased = false
-                } /*else {
-                camera?.startPreview()
-                }*/
+                }
                 adjustCameraOrientation()
                 val params = camera?.parameters
 
@@ -186,15 +209,40 @@ class MainActivity : AppCompatActivity() {
                         previewSize.width,
                         previewSize.height
                     )
+                    //var timestamp: Long? = null
                     runOnUiThread {
                         if (realTimeRGBFragment.view != null) {
                             realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
                         }
-                        if (lineGraphFragment.view != null) {
-                            addDataPoint(avgRed, avgGreen, avgBlue)
-                        }
+                        /*if (lineGraphFragment.view != null) {
+                            //timestamp = addDataPoint(avgRed, avgGreen, avgBlue)
+
+                        }*/
                         //Log.d(TAG, "Preview callback")
                     }
+
+                    applicationScope.launch {
+                        val colorData = addDataPoint(avgRed, avgGreen, avgBlue)
+                        repository.insert(colorData)
+                        val lastColors = repository.getDataAfter(colorData.timestamp - (5 * 60 * 1000))
+                        runOnUiThread{
+                            if (lineGraphFragment.view != null) {
+                                lineGraphFragment.initializeGraph(lastColors)
+                            }
+                        }
+                    }
+                    // Save color data to database
+                    /*timestamp?.let {
+                        applicationScope.launch {
+                            val colorData = ColorData(
+                                timestamp = it,
+                                red = avgRed,
+                                green = avgGreen,
+                                blue = avgBlue
+                            )
+                            repository.insert(colorData)
+                        }
+                    }*/
                 }
                 Log.d(TAG, "Camera setup successful")
             } catch (e: Exception) {
@@ -204,22 +252,31 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun addDataPoint(avgRed: Int, avgGreen: Int, avgBlue: Int) {
+    private fun addDataPoint(avgRed: Int, avgGreen: Int, avgBlue: Int) : ColorData {
+        return ColorData(
+            timestamp = System.currentTimeMillis(),
+            red = avgRed,
+            green = avgGreen,
+            blue = avgBlue
+        )
+    }
+
+    /*private fun addDataPoint(avgRed: Int, avgGreen: Int, avgBlue: Int) : Long {
         val timestamp = System.currentTimeMillis()
         val chartCreationTime = lineGraphFragment.creationTimeMillis
-        val currentTime = convertMillisToMinutes(timestamp-chartCreationTime)
+        val currentTime = (timestamp - chartCreationTime) / 1000f / 60f
 
         val redEntry = Entry(currentTime, avgRed.toFloat())
         redData.add(redEntry)
-
         val greenEntry = Entry(currentTime, avgGreen.toFloat())
         greenData.add(greenEntry)
-
         val blueEntry = Entry(currentTime, avgBlue.toFloat())
         blueData.add(blueEntry)
 
         lineGraphFragment.updateGraph(redData, greenData, blueData)
-    }
+
+        return timestamp
+    }*/
 
     private fun adjustCameraOrientation() {
         val rotation = windowManager.defaultDisplay.rotation
@@ -295,12 +352,6 @@ class MainActivity : AppCompatActivity() {
         return Triple(avgRed, avgGreen, avgBlue)
     }
 
-    private fun convertMillisToMinutes(millis: Long): Float {
-        val seconds = millis / 1000.0f
-        return seconds / 60.0f
-    }
-
-
     override fun onPause() {
         super.onPause()
         Log.d(TAG, "onPause")
@@ -326,30 +377,19 @@ class MainActivity : AppCompatActivity() {
         //releaseCamera()
     }
 
-    /*override fun onConfigurationChanged(newConfig: Configuration) {
-        super.onConfigurationChanged(newConfig)
-        if (newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE ||
-            newConfig.orientation == Configuration.ORIENTATION_PORTRAIT) {
-            Log.d(TAG, "onConfigurationChanged")
-            releaseCamera()
-            setupCameraPreview()
-        }
-    }*/
-
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState")
 
         supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
         supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
-        val rEntryArray = redData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
+
+        /*val rEntryArray = redData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
         outState.putSerializable("redData", rEntryArray)
         val gEntryArray = greenData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
         outState.putSerializable("greenData", gEntryArray)
         val bEntryArray = blueData.map { entry -> floatArrayOf(entry.x, entry.y) }.toTypedArray()
-        outState.putSerializable("blueData", bEntryArray)
-
-
+        outState.putSerializable("blueData", bEntryArray)*/
 
         savedPreviewSize?.let{
             outState.putInt("previewWidth", it.width)
@@ -367,7 +407,7 @@ class MainActivity : AppCompatActivity() {
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
         lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
 
-        val savedRedEntries = savedInstanceState.getSerializable("redData") as? Array<FloatArray>
+        /*val savedRedEntries = savedInstanceState.getSerializable("redData") as? Array<FloatArray>
         savedRedEntries?.let {
             redData = it.map { e -> Entry(e[0], e[1]) }.toMutableList()
         }
@@ -378,7 +418,7 @@ class MainActivity : AppCompatActivity() {
         val savedBlueEntries = savedInstanceState.getSerializable("blueData") as? Array<FloatArray>
         savedBlueEntries?.let {
             blueData = it.map { e -> Entry(e[0], e[1]) }.toMutableList()
-        }
+        }*/
 
         savedPreviewSize = camera?.Size(savedInstanceState.getInt("previewWidth"), savedInstanceState.getInt("previewHeight"))
         savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")

@@ -1,7 +1,6 @@
 package com.example.hueharvester
 
 import androidx.annotation.WorkerThread
-import kotlinx.coroutines.flow.Flow
 
 // Declares the DAO as a private property in the constructor. Pass in the DAO
 // instead of the whole database, because you only need access to the DAO
@@ -20,8 +19,8 @@ class ColorDataRepository(private val colorDataDao: ColorDataDao) {
     }
 
     @WorkerThread
-    suspend fun getDataFromLastFiveMinutes(startTime: Float): List<ColorData> {
-        return colorDataDao.getDataFromLastFiveMinutes(startTime)
+    suspend fun getDataAfter(startTime: Long): List<ColorData> {
+        return colorDataDao.getDataAfter(startTime)
     }
 
     @WorkerThread
@@ -30,7 +29,7 @@ class ColorDataRepository(private val colorDataDao: ColorDataDao) {
     }
 
     @WorkerThread
-    suspend fun deleteOldData(startTime: Float) {
+    suspend fun deleteOldData(startTime: Long) {
         colorDataDao.deleteOldData(startTime)
     }
 }

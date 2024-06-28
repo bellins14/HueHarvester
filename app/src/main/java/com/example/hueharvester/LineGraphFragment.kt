@@ -9,23 +9,25 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
+import kotlinx.coroutines.launch
+
 
 class LineGraphFragment : Fragment() {
-
     private lateinit var lineChart: LineChart
-    var creationTimeMillis: Long = 0
+    var creationTimeMillis: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
         creationTimeMillis = System.currentTimeMillis()
-        Log.d(TAG, "LineGraphFragment onCreate")
+        Log.d(TAG, "LineGraphFragment onCreate, creation time: $creationTimeMillis")
     }
 
     override fun onCreateView(
@@ -49,27 +51,34 @@ class LineGraphFragment : Fragment() {
         return view
     }
 
+    fun initializeGraph(data: List<ColorData>) {
+        val redData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.red.toFloat()) }
+        val greenData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.green.toFloat()) }
+        val blueData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.blue.toFloat()) }
+        updateGraph(redData, greenData, blueData)
+
+    }
+
     fun updateGraph(redData: List<Entry>, greenData: List<Entry>, blueData: List<Entry>) {
-        //Collections.sort(redData, EntryXComparator())
-        val redDataSet = LineDataSet(redData, "Red")
-        redDataSet.color = Color.RED
-        redDataSet.axisDependency = YAxis.AxisDependency.LEFT
-        redDataSet.setDrawCircles(false)
-        //redDataSet.lineWidth = 2f
 
-        //Collections.sort(greenData, EntryXComparator())
-        val greenDataSet = LineDataSet(greenData, "Green")
-        greenDataSet.color = Color.GREEN
-        greenDataSet.axisDependency = YAxis.AxisDependency.LEFT
-        greenDataSet.setDrawCircles(false)
-        //greenDataSet.lineWidth = 2f
-
-        //Collections.sort(blueData, EntryXComparator())
-        val blueDataSet = LineDataSet(blueData, "Blue")
-        blueDataSet.color = Color.BLUE
-        blueDataSet.axisDependency = YAxis.AxisDependency.LEFT
-        blueDataSet.setDrawCircles(false)
-        //blueDataSet.lineWidth = 2f
+        val redDataSet = LineDataSet(redData, "Red").apply {
+            color = Color.RED
+            axisDependency = YAxis.AxisDependency.LEFT
+            setDrawCircles(false)
+            lineWidth = 2f
+        }
+        val greenDataSet = LineDataSet(greenData, "Green").apply {
+            color = Color.GREEN
+            axisDependency = YAxis.AxisDependency.LEFT
+            setDrawCircles(false)
+            lineWidth = 2f
+        }
+        val blueDataSet = LineDataSet(blueData, "Blue").apply {
+            color = Color.BLUE
+            axisDependency = YAxis.AxisDependency.LEFT
+            setDrawCircles(false)
+            lineWidth = 2f
+        }
 
         val lineData = LineData(redDataSet, greenDataSet, blueDataSet)
         lineChart.data = lineData
@@ -88,5 +97,3 @@ class LineGraphFragment : Fragment() {
         private const val TAG = "LineGraphFragment"
     }
 }
-
-
