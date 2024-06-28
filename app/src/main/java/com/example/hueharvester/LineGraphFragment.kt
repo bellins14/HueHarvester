@@ -16,11 +16,21 @@ import com.github.mikephil.charting.data.LineDataSet
 
 class LineGraphFragment : Fragment() {
     private lateinit var lineChart: LineChart
-    private var creationTimeMillis: Long = 0L
+    //var creationTimeMillis: Long = 0L
+    //var lastTimestamp: Long = 0L
+    //private var lastXValue: Float = 0f
+    //var lastID: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        creationTimeMillis = System.currentTimeMillis()
+        /*creationTimeMillis = if (lastTimestamp != 0L) {
+            lastTimestamp
+        } else {
+            System.currentTimeMillis()
+        }*/
+
+        //Log.d("Database", "Creation time: $creationTimeMillis")
+        //Log.d("DatabaseRoom", "CeationDataID: $lastID")
         Log.d(TAG, "LineGraphFragment onCreate")
     }
 
@@ -35,7 +45,7 @@ class LineGraphFragment : Fragment() {
         lineChart.setTouchEnabled(true)
         lineChart.isDragEnabled = false
         lineChart.setScaleEnabled(true)
-        lineChart.setPinchZoom(true)
+        lineChart.setPinchZoom(false)
         lineChart.xAxis.isEnabled = true
         lineChart.xAxis.setAvoidFirstLastClipping(true)
         lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
@@ -45,13 +55,12 @@ class LineGraphFragment : Fragment() {
         return view
     }
 
-    fun updateGraph(data: List<ColorData>) {
-        // TODO: correggere indicizzazione asse x
-        val redData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.red.toFloat()) }
-        val greenData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.green.toFloat()) }
-        val blueData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.blue.toFloat()) }
-        drawGraph(redData, greenData, blueData)
+    fun updateGraph(data: List<ColorData>, creationDataID: Int) {
+        val redData = data.map { Entry((it.id-creationDataID) / 1350f, it.red.toFloat()) }
+        val greenData = data.map { Entry((it.id-creationDataID) / 1350f, it.green.toFloat()) }
+        val blueData = data.map { Entry((it.id-creationDataID) / 1350f, it.blue.toFloat()) }
 
+        drawGraph(redData, greenData, blueData)
     }
 
     private fun drawGraph(redData: List<Entry>, greenData: List<Entry>, blueData: List<Entry>) {
@@ -60,19 +69,19 @@ class LineGraphFragment : Fragment() {
             color = Color.RED
             axisDependency = YAxis.AxisDependency.LEFT
             setDrawCircles(false)
-            lineWidth = 2f
+            //lineWidth = 2f
         }
         val greenDataSet = LineDataSet(greenData, "Green").apply {
             color = Color.GREEN
             axisDependency = YAxis.AxisDependency.LEFT
             setDrawCircles(false)
-            lineWidth = 2f
+            //lineWidth = 2f
         }
         val blueDataSet = LineDataSet(blueData, "Blue").apply {
             color = Color.BLUE
             axisDependency = YAxis.AxisDependency.LEFT
             setDrawCircles(false)
-            lineWidth = 2f
+            //lineWidth = 2f
         }
 
         val lineData = LineData(redDataSet, greenDataSet, blueDataSet)

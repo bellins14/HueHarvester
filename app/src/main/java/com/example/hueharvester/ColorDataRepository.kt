@@ -8,14 +8,15 @@ class ColorDataRepository(private val colorDataDao: ColorDataDao) {
     // By default Room runs suspend queries off the main thread. We don't need to
     // implement anything else to ensure we're not doing long running database work
     // off the main thread.
+
     @WorkerThread
     suspend fun insert(colorData: ColorData) {
         colorDataDao.insert(colorData)
     }
 
     @WorkerThread
-    suspend fun getDataAfter(startTime: Long): List<ColorData> {
-        return colorDataDao.getData(startTime)
+    suspend fun getDataAfter(startId: Int): List<ColorData> {
+        return colorDataDao.getDataAfter(startId)
     }
 
     @WorkerThread
@@ -24,7 +25,7 @@ class ColorDataRepository(private val colorDataDao: ColorDataDao) {
     }
 
     @WorkerThread
-    suspend fun deleteOldData(startTime: Long) {
-        colorDataDao.deleteOldData(startTime)
+    suspend fun deleteOldData(startId: Int) {
+        colorDataDao.deleteOldData(startId)
     }
 }

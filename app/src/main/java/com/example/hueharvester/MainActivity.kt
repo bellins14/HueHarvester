@@ -37,13 +37,13 @@ class MainActivity : AppCompatActivity() {
     private var previousSurfaceWidth = 0
     private var previousSurfaceHeight = 0
 
-    private var isCameraReleased = true
     private var savedPreviewSize: Camera.Size? = null
     private var savedPreviewFpsRange: IntArray? = null
 
     private val applicationScope = lifecycleScope
     private lateinit var database: AppDatabase
     private lateinit var repository: ColorDataRepository
+    private var creationDataID: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -54,6 +54,18 @@ class MainActivity : AppCompatActivity() {
         // Initialize database
         database = AppDatabase.getDatabase(this)
         repository = ColorDataRepository(database.colorDataDao())
+
+        savedInstanceState?.let{
+            Log.d("DatabaseRoom", "Last data ID from BUNDLE: ${it.getInt("creationDataID")}")
+        } ?: run {
+            applicationScope.launch {
+                val lastData = repository.getLastInsertedData()
+                lastData?.let{
+                    creationDataID = it.id
+                    Log.d("DatabaseRoom", "Last data ID from ROOM: $creationDataID")
+                }
+            }
+        }
 
         // Initialize OpenCV
         if (!OpenCVLoader.initDebug())
@@ -100,13 +112,22 @@ class MainActivity : AppCompatActivity() {
             requestCameraPermission()
         }
 
-        applicationScope.launch {
+        applicationScope.launch{
             while (true) {
-                val lastData = repository.getLastInsertedData()
-                // Delete data older than 5 minutes before the last data acquisition
-                lastData?.let { repository.deleteOldData(it.timestamp - (5 * 60 * 1000) ) }
-                Log.d(TAG, "Deleted too old data")
+                /*if(camera != null){*/
+                    val lastData = repository.getLastInsertedData()
+                    // Delete data older than 5 minutes before the last data acquisition
+                    lastData?.let {
+                        val startId = it.id - (5 * 1350) // 1350 = 22.5 samples/sec * 60 sec
+                        repository.deleteOldData(startId)
+                        Log.d("DatabaseRoom", "Deleted too old data => id < $startId")
+                    }
+                /*}*/
                 delay(60000)
+
+                /*val lastData = repository.getLastInsertedData()
+                Log.d("DatabaseRoom", "ID: ${lastData?.id}")
+                delay(30000)*/
             }
         }
     }
@@ -156,11 +177,9 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeCameraAsync(holder: SurfaceHolder) {
         Thread {
-            //Log.d(TAG, "${} - Thread started")
             try {
-                if (isCameraReleased) {
+                if (camera == null) {
                     camera = Camera.open()
-                    isCameraReleased = false
                 }
                 adjustCameraOrientation()
                 val params = camera?.parameters
@@ -202,14 +221,15 @@ class MainActivity : AppCompatActivity() {
                         previewSize.width,
                         previewSize.height
                     )
+
                     runOnUiThread {
                         if (realTimeRGBFragment.view != null) {
                             realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
                         }
                         //Log.d(TAG, "Preview callback")
                     }
-
                     manageNewData(avgRed, avgGreen, avgBlue)
+
                 }
                 Log.d(TAG, "Camera setup successful")
             } catch (e: Exception) {
@@ -219,25 +239,26 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    private fun manageNewData(avgRed: Int, avgGreen: Int, avgBlue: Int) {
-        applicationScope.launch {
-            // Save color data to database
-            val colorData = ColorData(
-                timestamp = System.currentTimeMillis(),
-                red = avgRed,
-                green = avgGreen,
-                blue = avgBlue
-            )
-            repository.insert(colorData)
+    private fun manageNewData(avgRed: Int, avgGreen: Int, avgBlue: Int) = applicationScope.launch{
+        val currentTime = System.currentTimeMillis()
 
-            // Update line graph
-            val lastFiveMinData = repository.getDataAfter(
-                colorData.timestamp - (5 * 60 * 1000)
-            )
-            runOnUiThread{
-                if (lineGraphFragment.view != null) {
-                    lineGraphFragment.updateGraph(lastFiveMinData)
-                }
+        // Save color data to database
+        val colorData = ColorData(
+            timestamp = currentTime,
+            red = avgRed,
+            green = avgGreen,
+            blue = avgBlue
+        )
+        repository.insert(colorData)
+
+        // Update line graph with the last 5 minutes of collected data
+        val lastFiveMinData = repository.getDataAfter(
+            colorData.id - (5 * 1350) // 1350 = 22.5 samples/sec * 60 sec
+        )
+        runOnUiThread{
+            if (lineGraphFragment.view != null) {
+                lineGraphFragment.updateGraph(lastFiveMinData, creationDataID)
+                //Log.d("DatabaseRoom", "startId: $creationDataID")
             }
         }
     }
@@ -259,14 +280,11 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun releaseCamera() {
-        if (!isCameraReleased){
-            camera?.setPreviewCallback(null)
-            camera?.stopPreview()
-            camera?.release()
-            camera = null
-            isCameraReleased = true
-            Log.d(TAG, "Camera released")
-        }
+        camera?.setPreviewCallback(null)
+        camera?.stopPreview()
+        camera?.release()
+        camera = null
+        Log.d(TAG, "Camera released")
     }
 
     private fun checkCameraPermission(): Boolean {
@@ -338,13 +356,13 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         Log.d(TAG, "onDestroy")
-        //releaseCamera() // TODO: controllare se serve qua, veniva a volte nel log che falliva a rilasciare risorsa
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
         Log.d(TAG, "onSaveInstanceState")
 
+        outState.putInt("creationDataID", creationDataID)
         supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
         supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
 
@@ -361,6 +379,7 @@ class MainActivity : AppCompatActivity() {
         Log.d(TAG, "onRestoreInstanceState")
         super.onRestoreInstanceState(savedInstanceState)
 
+        creationDataID = savedInstanceState.getInt("creationDataID")
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
         lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
 
