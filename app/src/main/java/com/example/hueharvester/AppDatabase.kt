@@ -4,7 +4,6 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
-import androidx.sqlite.db.SupportSQLiteDatabase
 import kotlinx.coroutines.CoroutineScope
 
 @Database(entities = [ColorData::class], version = 2, exportSchema = false)
@@ -24,31 +23,28 @@ abstract class AppDatabase : RoomDatabase() {
                     context.applicationContext,
                     AppDatabase::class.java,
                     "color_data_database"
-                ).addCallback(AppDatabaseCallback(scope))
-                 .build()
+                ).build()
                 INSTANCE = instance
                 instance
             }
         }
     }
 
-    private class AppDatabaseCallback(
+    // Populate Database with sample data - only for DEBUGGING
+    /*private class AppDatabaseCallback(
         private val scope: CoroutineScope
     ) : Callback() {
 
         override fun onCreate(db: SupportSQLiteDatabase) {
             super.onCreate(db)
-            // If you want to keep the data through app restarts,
-            // comment out the following line.
-            /*INSTANCE?.let { database ->
+            INSTANCE?.let { database ->
                 scope.launch(Dispatchers.IO) {
                     populateDatabase(database.colorDataDao())
                 }
-            }*/
+            }
         }
 
         suspend fun populateDatabase(colorDataDao: ColorDataDao) {
-            // Add sample colors - only for debugging
             val currentTime = System.currentTimeMillis()
             colorDataDao.deleteAll()
             val color1 = ColorData(timestamp = currentTime - 5*60*1000, red = 150, green = 100, blue = 50)
@@ -62,6 +58,6 @@ abstract class AppDatabase : RoomDatabase() {
             val color5 = ColorData(timestamp = currentTime - 1*60*1000, red = 150, green = 100, blue = 50)
             colorDataDao.insert(color5)
         }
-    }
+    }*/
 }
 

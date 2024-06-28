@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.example.hueharvester
 
 import android.graphics.Color
@@ -9,25 +7,21 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
 import com.github.mikephil.charting.data.Entry
 import com.github.mikephil.charting.data.LineData
 import com.github.mikephil.charting.data.LineDataSet
-import kotlinx.coroutines.launch
-
 
 class LineGraphFragment : Fragment() {
     private lateinit var lineChart: LineChart
-    var creationTimeMillis: Long = 0L
+    private var creationTimeMillis: Long = 0L
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
         creationTimeMillis = System.currentTimeMillis()
-        Log.d(TAG, "LineGraphFragment onCreate, creation time: $creationTimeMillis")
+        Log.d(TAG, "LineGraphFragment onCreate")
     }
 
     override fun onCreateView(
@@ -37,29 +31,30 @@ class LineGraphFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_line_graph, container, false)
         lineChart = view.findViewById(R.id.line_chart)
 
-        // Configura il grafico
         lineChart.description.isEnabled = false
         lineChart.setTouchEnabled(true)
-        lineChart.isDragEnabled = true
+        lineChart.isDragEnabled = false
         lineChart.setScaleEnabled(true)
-        lineChart.setPinchZoom(false)
+        lineChart.setPinchZoom(true)
         lineChart.xAxis.isEnabled = true
         lineChart.xAxis.setAvoidFirstLastClipping(true)
         lineChart.xAxis.position = XAxis.XAxisPosition.BOTTOM
+        //TODO: disabilitare croce arancione quando tocchi gafico
 
         Log.d(TAG, "LineGraphFragment onCreateView")
         return view
     }
 
-    fun initializeGraph(data: List<ColorData>) {
+    fun updateGraph(data: List<ColorData>) {
+        // TODO: correggere indicizzazione asse x
         val redData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.red.toFloat()) }
         val greenData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.green.toFloat()) }
         val blueData = data.map { Entry((it.timestamp - creationTimeMillis) / 1000f / 60f, it.blue.toFloat()) }
-        updateGraph(redData, greenData, blueData)
+        drawGraph(redData, greenData, blueData)
 
     }
 
-    fun updateGraph(redData: List<Entry>, greenData: List<Entry>, blueData: List<Entry>) {
+    private fun drawGraph(redData: List<Entry>, greenData: List<Entry>, blueData: List<Entry>) {
 
         val redDataSet = LineDataSet(redData, "Red").apply {
             color = Color.RED

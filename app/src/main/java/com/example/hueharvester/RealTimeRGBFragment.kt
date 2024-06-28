@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package com.example.hueharvester
 
 import android.annotation.SuppressLint
@@ -21,7 +19,6 @@ class RealTimeRGBFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        retainInstance = true  // Mantieni il fragment durante il cambio di configurazione
         Log.d(TAG, "ReaTimeRGBFragment onCreate")
     }
 
