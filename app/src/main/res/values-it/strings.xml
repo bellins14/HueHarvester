@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="line_graph">Grafico lineare</string>
+    <string name="no_data_text">Caricamento dati…</string>
+    <string name="camera_permission_required">Accesso alla fotocamera richiesto</string>
+    <string name="avg_color_txt">Colore Medio</string>
+</resources>

@@ -16,21 +16,9 @@ import com.github.mikephil.charting.data.LineDataSet
 
 class LineGraphFragment : Fragment() {
     private lateinit var lineChart: LineChart
-    //var creationTimeMillis: Long = 0L
-    //var lastTimestamp: Long = 0L
-    //private var lastXValue: Float = 0f
-    //var lastID: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        /*creationTimeMillis = if (lastTimestamp != 0L) {
-            lastTimestamp
-        } else {
-            System.currentTimeMillis()
-        }*/
-
-        //Log.d("Database", "Creation time: $creationTimeMillis")
-        //Log.d("DatabaseRoom", "CeationDataID: $lastID")
         Log.d(TAG, "LineGraphFragment onCreate")
     }
 
@@ -41,6 +29,7 @@ class LineGraphFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_line_graph, container, false)
         lineChart = view.findViewById(R.id.line_chart)
 
+        lineChart.setNoDataText(getString(R.string.no_data_text))
         lineChart.description.isEnabled = false
         lineChart.setTouchEnabled(true)
         lineChart.isDragEnabled = false

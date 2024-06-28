@@ -23,6 +23,7 @@ import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
 import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
+import java.lang.NullPointerException
 
 
 class MainActivity : AppCompatActivity() {
@@ -109,7 +110,7 @@ class MainActivity : AppCompatActivity() {
             Log.d(TAG, "Camera permission granted")
             setupCameraPreview()
         } else {
-            requestCameraPermission()
+            requestCameraPermission() // TODO: Handle permission request result (se do ok app rimane bloccata)
         }
 
         applicationScope.launch{
@@ -124,10 +125,6 @@ class MainActivity : AppCompatActivity() {
                     }
                 /*}*/
                 delay(60000)
-
-                /*val lastData = repository.getLastInsertedData()
-                Log.d("DatabaseRoom", "ID: ${lastData?.id}")
-                delay(30000)*/
             }
         }
     }
@@ -222,13 +219,15 @@ class MainActivity : AppCompatActivity() {
                         previewSize.height
                     )
 
-                    runOnUiThread {
-                        if (realTimeRGBFragment.view != null) {
-                            realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                    if (avgRed != -1 && avgGreen != -1 && avgBlue != -1){
+                        runOnUiThread {
+                            if (realTimeRGBFragment.view != null) {
+                                realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                            }
+                            //Log.d(TAG, "Preview callback")
                         }
-                        //Log.d(TAG, "Preview callback")
+                        manageNewData(avgRed, avgGreen, avgBlue)
                     }
-                    manageNewData(avgRed, avgGreen, avgBlue)
 
                 }
                 Log.d(TAG, "Camera setup successful")
@@ -301,37 +300,50 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
                 setupCameraPreview()
             } else {
-                Toast.makeText(this, "Camera permission is required", Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
             }
         }
     }
 
     private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
-        val yuv = Mat(height + height / 2, width, CvType.CV_8UC1)
+        // 1. Creation of a Mat for YUV data
+        val yuv = Mat(height + height/2, width, CvType.CV_8UC1)
         yuv.put(0, 0, data)
 
+        // 2. Creation of an empty Mat for RGB data
         val rgb = Mat()
+
+        // 3. Conversion from YUV to RGB
         Imgproc.cvtColor(yuv, rgb, Imgproc.COLOR_YUV2RGB_NV21, 3)
 
+        // 4. Initialization of color sums
         var redSum = 0L
         var greenSum = 0L
         var blueSum = 0L
         val pixelCount = width * height
 
-        for (y in 0 until height) {
-            for (x in 0 until width) {
-                val pixel = rgb.get(y, x)
-                redSum += pixel[0].toInt()
-                greenSum += pixel[1].toInt()
-                blueSum += pixel[2].toInt()
+        try {
+            // 5. Calculation of the sum of RGB values
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val pixel = rgb.get(y, x)
+                    redSum += pixel[0].toInt()
+                    greenSum += pixel[1].toInt()
+                    blueSum += pixel[2].toInt()
+                }
             }
+
+            // 6. Calculation of average values
+            val avgRed = (redSum / pixelCount).toInt()
+            val avgGreen = (greenSum / pixelCount).toInt()
+            val avgBlue = (blueSum / pixelCount).toInt()
+
+            // 7. Return average values as a Triple
+            return Triple(avgRed, avgGreen, avgBlue)
+        } catch (e: NullPointerException) {
+            Log.e(TAG, "Error calculating average color")
+            return Triple(-1, -1, -1)
         }
-
-        val avgRed = (redSum / pixelCount).toInt()
-        val avgGreen = (greenSum / pixelCount).toInt()
-        val avgBlue = (blueSum / pixelCount).toInt()
-
-        return Triple(avgRed, avgGreen, avgBlue)
     }
 
     override fun onPause() {

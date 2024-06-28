@@ -1,11 +1,13 @@
 <resources>
-    <string name="app_name">Hue Harvester</string>
-    <string name="RGB_values">RGB Values</string>
+    <string name="app_name" translatable="false">Hue Harvester</string>
+    <string name="RGB_values" translatable="false">RGB Values</string>
     <string name="line_graph">Line Graph</string>
+    <string name="no_data_text">Loading data…</string>
+    <string name="camera_permission_required">Camera permission is required</string>
 
-    <string name="camera_preview_content">Camera Preview section</string>
-    <string name="viewPager_content">ViewPager section</string>
-    <string name="tabLayout_content">TabLayout section</string>
+    <string name="camera_preview_content" translatable="false">Camera Preview section</string>
+    <string name="viewPager_content" translatable="false">ViewPager section</string>
+    <string name="tabLayout_content" translatable="false">TabLayout section</string>
 
     <string name="avg_color_txt">Average Color</string>
 </resources>

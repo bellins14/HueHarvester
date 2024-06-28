@@ -52,7 +52,7 @@ class RealTimeRGBFragment : Fragment() {
             setBackgroundColor(Color.rgb(0, 0, b))
         }
         averageColorTextView.apply {
-            text = "Average Color"
+            text = getString(R.string.avg_color_txt)
             setBackgroundColor(Color.rgb(r, g, b))
         }
     }
