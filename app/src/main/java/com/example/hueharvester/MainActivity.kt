@@ -52,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         setContentView(R.layout.activity_main)
 
         // Initialize database
-        database = AppDatabase.getDatabase(this, applicationScope)
+        database = AppDatabase.getDatabase(this)
         repository = ColorDataRepository(database.colorDataDao())
 
         // Initialize OpenCV
@@ -103,8 +103,9 @@ class MainActivity : AppCompatActivity() {
         applicationScope.launch {
             while (true) {
                 val lastData = repository.getLastInsertedData()
+                // Delete data older than 5 minutes before the last data acquisition
                 lastData?.let { repository.deleteOldData(it.timestamp - (5 * 60 * 1000) ) }
-                Log.d(TAG, "Deleted old data")
+                Log.d(TAG, "Deleted too old data")
                 delay(60000)
             }
         }
@@ -155,6 +156,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun initializeCameraAsync(holder: SurfaceHolder) {
         Thread {
+            //Log.d(TAG, "${} - Thread started")
             try {
                 if (isCameraReleased) {
                     camera = Camera.open()
@@ -207,26 +209,7 @@ class MainActivity : AppCompatActivity() {
                         //Log.d(TAG, "Preview callback")
                     }
 
-                    applicationScope.launch {
-                        // Save color data to database
-                        val colorData = ColorData(
-                            timestamp = System.currentTimeMillis(),
-                            red = avgRed,
-                            green = avgGreen,
-                            blue = avgBlue
-                        )
-                        repository.insert(colorData)
-
-                        // Update line graph
-                        val lastFiveMinData = repository.getDataAfter(
-                            colorData.timestamp - (5 * 60 * 1000)
-                        )
-                        runOnUiThread{
-                            if (lineGraphFragment.view != null) {
-                                lineGraphFragment.updateGraph(lastFiveMinData)
-                            }
-                        }
-                    }
+                    manageNewData(avgRed, avgGreen, avgBlue)
                 }
                 Log.d(TAG, "Camera setup successful")
             } catch (e: Exception) {
@@ -234,6 +217,29 @@ class MainActivity : AppCompatActivity() {
                 Log.e(TAG, "Camera setup failed", e)
             }
         }.start()
+    }
+
+    private fun manageNewData(avgRed: Int, avgGreen: Int, avgBlue: Int) {
+        applicationScope.launch {
+            // Save color data to database
+            val colorData = ColorData(
+                timestamp = System.currentTimeMillis(),
+                red = avgRed,
+                green = avgGreen,
+                blue = avgBlue
+            )
+            repository.insert(colorData)
+
+            // Update line graph
+            val lastFiveMinData = repository.getDataAfter(
+                colorData.timestamp - (5 * 60 * 1000)
+            )
+            runOnUiThread{
+                if (lineGraphFragment.view != null) {
+                    lineGraphFragment.updateGraph(lastFiveMinData)
+                }
+            }
+        }
     }
 
     private fun adjustCameraOrientation() {
