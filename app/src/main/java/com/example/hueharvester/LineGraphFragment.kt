@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.hueharvester.database.ColorData
 import com.github.mikephil.charting.charts.LineChart
@@ -46,6 +47,7 @@ class LineGraphFragment : Fragment() {
         val view = inflater.inflate(R.layout.fragment_line_graph, container, false)
 
         lineChart = view.findViewById(R.id.line_chart)
+        val textColor = ContextCompat.getColor(requireContext(), R.color.chart_text)
 
         lineChart.apply {
             setNoDataText(getString(R.string.no_data_text))
@@ -58,6 +60,13 @@ class LineGraphFragment : Fragment() {
             xAxis.isEnabled = true
             xAxis.setAvoidFirstLastClipping(true)
             xAxis.position = XAxis.XAxisPosition.BOTTOM
+            xAxis.textColor = textColor
+            axisLeft.textColor = textColor
+            axisRight.textColor = textColor
+            xAxis.axisLineColor = textColor
+            axisLeft.axisLineColor = textColor
+            axisRight.axisLineColor = textColor
+            legend.textColor = textColor
         }
 
         drawGraph()
