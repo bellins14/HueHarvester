@@ -78,4 +78,3 @@ androidx-lifecycle-viewmodel-android = { group = "androidx.lifecycle", name = "l
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
 jetbrainsKotlinAndroid = { id = "org.jetbrains.kotlin.android", version.ref = "kotlin" }
-
