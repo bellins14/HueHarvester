@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(MAIN, "onCreate")
+        //Log.d(MAIN, "onCreate")
 
         setContentView(R.layout.activity_main)
 
@@ -112,22 +112,22 @@ class MainActivity : AppCompatActivity() {
             if (!isIdSaved) {
                 // Set the data collection starting point
                 savedInstanceState?.let {
-                    Log.d(DBR, "Creation data ID from BUNDLE: ${it.getInt("creationDataID")}")
-                    Log.d(DBR, "Last data ID from BUNDLE: ${it.getInt("lastDataID")}")
+                    //Log.d(DBR, "Creation data ID from BUNDLE: ${it.getInt("creationDataID")}")
+                    //Log.d(DBR, "Last data ID from BUNDLE: ${it.getInt("lastDataID")}")
                 } ?: try {
                     run {
                         dataList.last().let {
                             creationDataID = it.id
                             lastDataID = it.id
-                            Log.d(DBR, "Creation data ID from ROOM: $creationDataID")
-                            Log.d(DBR, "Last data ID from ROOM: $lastDataID")
+                            //Log.d(DBR, "Creation data ID from ROOM: $creationDataID")
+                            //Log.d(DBR, "Last data ID from ROOM: $lastDataID")
                         }
                     }
                 } catch (e: NoSuchElementException) {
                     //Log.e(DBR, "No data in the database", e)
                     Log.i(DBR, "No data in the database")
-                    Log.d(DBR, "Creation data ID: $creationDataID")
-                    Log.d(DBR, "Last data ID: $lastDataID")
+                    //Log.d(DBR, "Creation data ID: $creationDataID")
+                    //Log.d(DBR, "Last data ID: $lastDataID")
                 }
                 isIdSaved = true
             }
@@ -149,7 +149,7 @@ class MainActivity : AppCompatActivity() {
                     if (this.id - dataList.first().id > MAX_TIME ) { // doesn't clean up if there are less than MAX_TIME data
                         // Clean up old data
                         viewModel.deleteOldData(this.id - MAX_TIME)
-                        Log.d(DBR, "Last ID = ${this.id} : deleted too old data => id < ${this.id - MAX_TIME}")
+                        //Log.d(DBR, "Last ID = ${this.id} : deleted too old data => id < ${this.id - MAX_TIME}")
                     }
                 }
             }
@@ -162,35 +162,35 @@ class MainActivity : AppCompatActivity() {
      *  @see Camera
      */
     private fun setupCameraPreview() {
-        Log.v(MAIN, "Setting up camera preview")
+        //Log.v(MAIN, "Setting up camera preview")
         val holder: SurfaceHolder = cameraPreview.holder
 
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
-                Log.i(MAIN, "Surface created")
+                //Log.i(MAIN, "Surface created")
                 if (!checkCameraPermission()) {
                     requestCameraPermission()
                 } else {
-                    Log.v(MAIN, "surfaceCreated calls initializeCameraAsync")
+                    //Log.v(MAIN, "surfaceCreated calls initializeCameraAsync")
                     initializeCamera(holder)
                     isSurfaceCreated = true
                 }
             }
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
                 if (isSurfaceCreated) { // possible calling of surfaceChanged before surfaceCreated
-                    Log.i(MAIN, "Surface changed from [${savedPreviewSize?.get(0)} x ${savedPreviewSize?.get(1)}] to [$width x $height]")
+                    //Log.i(MAIN, "Surface changed from [${savedPreviewSize?.get(0)} x ${savedPreviewSize?.get(1)}] to [$width x $height]")
                     if (camera != null && (width != savedPreviewSize?.get(0) || height != savedPreviewSize?.get(
                             1
                         ))
                     ) {
-                        Log.v(MAIN, "surfaceChanged calls initializeCameraAsync")
+                        //Log.v(MAIN, "surfaceChanged calls initializeCameraAsync")
                         camera?.stopPreview()
                         initializeCamera(holder)
                     }
                 }
             }
             override fun surfaceDestroyed(holder: SurfaceHolder) {
-                Log.d(MAIN, "Surface destroyed")
+                //Log.d(MAIN, "Surface destroyed")
                 releaseCamera()
                 isSurfaceCreated = false
             }
@@ -210,7 +210,7 @@ class MainActivity : AppCompatActivity() {
             if (isCameraReleased) {
                 camera = Camera.open()
                 isCameraReleased = false
-                Log.i(MAIN, "Camera opened")
+                //Log.i(MAIN, "Camera opened")
             }
 
             adjustCameraOrientation()
@@ -218,7 +218,7 @@ class MainActivity : AppCompatActivity() {
             val params = camera?.parameters
 
             savedPreviewSize?.let {
-                Log.v(MAIN, "Restoring preview size: ${it[0]} x ${it[1]}")
+                //Log.v(MAIN, "Restoring preview size: ${it[0]} x ${it[1]}")
                 params?.setPreviewSize(it[0], it[1])
             } ?: run {
                 val supportedPreviewSizes = params?.supportedPreviewSizes
@@ -227,12 +227,7 @@ class MainActivity : AppCompatActivity() {
                     savedPreviewSize = intArrayOf(it.width, it.height)
                     params.setPreviewSize(it.width, it.height)
                 }
-                Log.i(
-                    MAIN,
-                    "Preview size set to: ${savedPreviewSize?.get(0)} x ${
-                        savedPreviewSize?.get(1)
-                    }"
-                )
+                //Log.i(MAIN,"Preview size set to: ${savedPreviewSize?.get(0)} x ${savedPreviewSize?.get(1)}")
             }
             savedPreviewFpsRange?.let {
                 params?.setPreviewFpsRange(it[0], it[1])
@@ -265,7 +260,7 @@ class MainActivity : AppCompatActivity() {
 
                 setPreviewDisplay(holder)
                 startPreview()
-                Log.v(MAIN, "Camera preview started")
+                //Log.v(MAIN, "Camera preview started")
             }
             Log.d(MAIN, "Camera setup successful")
         } catch (e: Exception) {
@@ -322,14 +317,14 @@ class MainActivity : AppCompatActivity() {
      */
     private fun releaseCamera() {
         if (!isCameraReleased) {
-            Log.v(MAIN, "Releasing camera")
+            //Log.v(MAIN, "Releasing camera")
             camera?.apply {
                 stopPreview()
                 setPreviewCallback(null)
                 release()
                 camera = null
                 isCameraReleased = true
-                Log.d(MAIN, "Camera released")
+                //Log.d(MAIN, "Camera released")
             }
         }
     }
@@ -359,8 +354,8 @@ class MainActivity : AppCompatActivity() {
         if (requestCode == CAMERA_REQUEST_CODE) {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 Toast.makeText(this, getString(R.string.camera_permission_granted), Toast.LENGTH_SHORT).show()
-                Log.i(MAIN, "Camera permission granted")
-                Log.v(MAIN, "requestCameraPermission calls initializeCameraAsync")
+                //Log.i(MAIN, "Camera permission granted")
+                //Log.v(MAIN, "requestCameraPermission calls initializeCameraAsync")
                 initializeCamera(cameraPreview.holder)
             } else {
                 Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
@@ -421,21 +416,21 @@ class MainActivity : AppCompatActivity() {
             // 8. Return average values as a Triple
             return Triple(avgRed, avgGreen, avgBlue)
         } catch (e: NullPointerException) {
-            Log.e(MAIN, "Error calculating average color")
-            Log.i(MAIN, "Returning default values due to Error")
+            //Log.e(MAIN, "Error calculating average color")
+            //Log.i(MAIN, "Returning default values due to Error")
             return Triple(0, 0, 0)
         }
     }
 
     override fun onPause() {
-        Log.d(MAIN, "onPause")
+        //Log.d(MAIN, "onPause")
         super.onPause()
         releaseCamera()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         super.onSaveInstanceState(outState)
-        Log.d(MAIN, "onSaveInstanceState")
+        //Log.d(MAIN, "onSaveInstanceState")
 
         outState.putInt("creationDataID", creationDataID)
         outState.putInt("lastDataID", lastDataID)
@@ -458,7 +453,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
         super.onRestoreInstanceState(savedInstanceState)
-        Log.d(MAIN, "onRestoreInstanceState")
+        //Log.d(MAIN, "onRestoreInstanceState")
 
         creationDataID = savedInstanceState.getInt("creationDataID")
         lastDataID = savedInstanceState.getInt("lastDataID")
