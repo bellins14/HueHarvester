@@ -3,6 +3,7 @@ package com.example.hueharvester.database
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
+import kotlinx.coroutines.flow.Flow
 
 // TODO: commenta bene e documenta
 @Dao
@@ -10,11 +11,14 @@ interface ColorDataDao {
     @Insert
     suspend fun insert(colorData: ColorData)
 
-    @Query("SELECT * FROM color_data WHERE timestamp >= :startId ORDER BY id ASC")
+    @Query("SELECT * FROM color_data ORDER BY id ASC")
+    fun getAllData(): Flow<List<ColorData>>
+
+    /*@Query("SELECT * FROM color_data WHERE timestamp >= :startId ORDER BY id ASC")
     suspend fun getDataAfter(startId: Int): List<ColorData>
 
     @Query("SELECT * FROM color_data ORDER BY timestamp DESC LIMIT 1")
-    suspend fun getLastInsertedData(): ColorData?
+    suspend fun getLastInsertedData(): ColorData?*/
 
     @Query("DELETE FROM color_data WHERE id < :startId")
     suspend fun deleteOldData(startId: Int)

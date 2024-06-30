@@ -6,21 +6,21 @@ import androidx.room.RoomDatabase
 import android.content.Context
 
 // TODO: commenta bene e documenta
-@Database(entities = [ColorData::class], version = 2, exportSchema = false)
-abstract class AppDatabase : RoomDatabase() {
+@Database(entities = [ColorData::class], version = 3, exportSchema = false)
+abstract class ColorDataDatabase : RoomDatabase() {
     abstract fun colorDataDao(): ColorDataDao
 
     companion object {
         @Volatile
-        private var INSTANCE: AppDatabase? = null
+        private var INSTANCE: ColorDataDatabase? = null
 
         fun getDatabase(
             context: Context
-        ): AppDatabase {
+        ): ColorDataDatabase {
             return INSTANCE ?: synchronized(this) {
                 val instance = Room.databaseBuilder(
                     context.applicationContext,
-                    AppDatabase::class.java,
+                    ColorDataDatabase::class.java,
                     "color_data_database"
                 ).build()
                 INSTANCE = instance

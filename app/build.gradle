@@ -49,8 +49,13 @@ dependencies {
     implementation libs.androidx.appcompat.v170
     implementation libs.material.v180
     implementation libs.androidx.activity.ktx
+    implementation libs.androidx.annotation
 
     // TODO: Controlla se aggiornando versioni qua funziona tutto
+
+    // Dependencies for working with Architecture components
+    // You'll probably have to update the version numbers in build.gradle (Project)
+
     // Room components
     implementation libs.androidx.room.ktx
     //noinspection KaptUsageInsteadOfKsp
@@ -58,8 +63,18 @@ dependencies {
     androidTestImplementation libs.androidx.room.testing
 
     // Lifecycle components
-    implementation libs.androidx.lifecycle.livedata.ktx
-    implementation libs.androidx.lifecycle.common.java8
+    implementation libs.androidx.lifecycle.viewmodel.ktx.v282
+    implementation libs.androidx.lifecycle.viewmodel.savedstate
+    implementation libs.androidx.lifecycle.livedata.ktx.v282
+    implementation libs.androidx.lifecycle.common.java8.v282
+
+    // Kotlin components
+    api "org.jetbrains.kotlinx:kotlinx-coroutines-core:$rootProject.coroutines"
+    api libs.kotlinx.coroutines.android.v173
+
+    // UI
+    implementation libs.androidx.constraintlayout
+    implementation libs.material.v180
 
     // MPAndroidChart
     implementation libs.mpandroidchart

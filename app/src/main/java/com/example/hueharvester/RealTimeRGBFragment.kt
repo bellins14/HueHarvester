@@ -20,7 +20,7 @@ class RealTimeRGBFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "ReaTimeRGBFragment onCreate")
+        Log.d(TAG, "$TAG onCreate")
     }
 
     override fun onCreateView(
@@ -34,7 +34,7 @@ class RealTimeRGBFragment : Fragment() {
         blueTextView = view.findViewById<TextView?>(R.id.blue_text_view).apply { text = getString(R.string.blue_txt, NA) }
         averageColorTextView = view.findViewById(R.id.average_color_text_view)
 
-        Log.d(TAG, "ReaTimeRGBFragment onCreateView")
+        Log.d(TAG, "$TAG onCreateView")
         return view
     }
 
@@ -71,7 +71,7 @@ class RealTimeRGBFragment : Fragment() {
 
     override fun onDetach() {
         super.onDetach()
-        Log.d(TAG, "ReaTimeRGBFragment onDetach")
+        Log.d(TAG, "$TAG onDetach")
     }
 
     companion object {
