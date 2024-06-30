@@ -59,4 +59,3 @@ abstract class ColorDataDatabase : RoomDatabase() {
         }
     }*/
 }
-
