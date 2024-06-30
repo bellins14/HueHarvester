@@ -1,6 +1,5 @@
 package com.example.hueharvester
 
-import android.annotation.SuppressLint
 import android.graphics.Color
 import android.os.Bundle
 import android.util.Log
@@ -10,6 +9,7 @@ import android.view.ViewGroup
 import android.widget.TextView
 import androidx.fragment.app.Fragment
 
+// TODO: commenta bene e documenta
 class RealTimeRGBFragment : Fragment() {
 
     private lateinit var redTextView: TextView
@@ -37,23 +37,27 @@ class RealTimeRGBFragment : Fragment() {
         return view
     }
 
-    @SuppressLint("SetTextI18n")
     fun updateRGBValues(r: Int, g: Int, b: Int) {
         redTextView.apply {
-            text = "R = $r"
+            text = getString(R.string.red_txt, r.toString())
             setBackgroundColor(Color.rgb(r, 0, 0))
+            setTextColor(Color.WHITE)
         }
         greenTextView.apply {
-            text = "G = $g"
+            text = getString(R.string.green_txt, g.toString())
             setBackgroundColor(Color.rgb(0, g, 0))
+            setTextColor(Color.WHITE)
         }
         blueTextView.apply {
-            text = "B = $b"
+            text = getString(R.string.blue_txt, b.toString())
             setBackgroundColor(Color.rgb(0, 0, b))
+            setTextColor(Color.WHITE)
+
         }
         averageColorTextView.apply {
             text = getString(R.string.avg_color_txt)
             setBackgroundColor(Color.rgb(r, g, b))
+            setTextColor(Color.WHITE)
         }
     }
 

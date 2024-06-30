@@ -16,8 +16,10 @@ import androidx.core.app.ActivityCompat
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.lifecycleScope
 import androidx.viewpager.widget.ViewPager
+import com.example.hueharvester.database.AppDatabase
+import com.example.hueharvester.database.ColorData
+import com.example.hueharvester.database.ColorDataRepository
 import com.google.android.material.tabs.TabLayout
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
@@ -25,7 +27,7 @@ import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 import java.lang.NullPointerException
 
-
+// TODO: disattiva tutti Log in tutti i file
 class MainActivity : AppCompatActivity() {
     private lateinit var viewPager: ViewPager
     private lateinit var tabLayout: TabLayout
@@ -34,102 +36,58 @@ class MainActivity : AppCompatActivity() {
     private lateinit var cameraPreview: SurfaceView
     private var camera: Camera? = null
 
-    private var isSurfaceCreated = false
-    private var previousSurfaceWidth = 0
-    private var previousSurfaceHeight = 0
-
-    private var savedPreviewSize: Camera.Size? = null
+    private var savedPreviewSize: IntArray? = null
     private var savedPreviewFpsRange: IntArray? = null
 
-    private val applicationScope = lifecycleScope
+    //private val applicationScope = lifecycleScope
     private lateinit var database: AppDatabase
     private lateinit var repository: ColorDataRepository
     private var creationDataID: Int = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(TAG, "onCreate")
+        Log.d(MAIN, "onCreate")
 
         setContentView(R.layout.activity_main)
 
+        // TODO: crea funzione per inizializzazione
         // Initialize database
         database = AppDatabase.getDatabase(this)
         repository = ColorDataRepository(database.colorDataDao())
-
+        // Set the data collection starting point
         savedInstanceState?.let{
-            Log.d("DatabaseRoom", "Last data ID from BUNDLE: ${it.getInt("creationDataID")}")
+            Log.d(DBR, "Last data ID from BUNDLE: ${it.getInt("creationDataID")}")
         } ?: run {
-            applicationScope.launch {
-                val lastData = repository.getLastInsertedData()
-                lastData?.let{
+            lifecycleScope.launch {
+                repository.getLastInsertedData()?.let{
                     creationDataID = it.id
-                    Log.d("DatabaseRoom", "Last data ID from ROOM: $creationDataID")
+                    Log.d(DBR, "Last data ID from ROOM: $creationDataID")
                 }
             }
         }
 
         // Initialize OpenCV
         if (!OpenCVLoader.initDebug())
-            Log.e(TAG, "Unable to load OpenCV!")
+            Log.e(MAIN, "Unable to load OpenCV!")
         else
-            Log.d(TAG, "OpenCV loaded Successfully!")
+            Log.d(MAIN, "OpenCV loaded Successfully!")
 
         cameraPreview = findViewById(R.id.camera_preview)
         viewPager = findViewById(R.id.view_pager)
         tabLayout = findViewById(R.id.tab_layout)
 
         setupViewPager(viewPager)
-
         tabLayout.setupWithViewPager(viewPager, true)
 
-        viewPager.addOnPageChangeListener(object : ViewPager.OnPageChangeListener {
-            override fun onPageScrolled(position: Int, positionOffset: Float, positionOffsetPixels: Int) {
-                //Log.d(TAG, "onPageScrolled")
-            }
-
-            override fun onPageSelected(position: Int) {
-                //Log.d(TAG, "onPageSelected")
-                if (position == 0) {
-                    Log.d(TAG, "RealTimeRGBFragment selected")
-                } else if (position == 1) {
-                    Log.d(TAG, "LineGraphFragment selected")
-                }
-            }
-
-            override fun onPageScrollStateChanged(state: Int) {
-                //Log.d(TAG, "onPageScrollStateChanged")
-            }
-        })
-
+        // TODO: usa .let{}
         val adapter = viewPager.adapter as ViewPagerAdapter
         realTimeRGBFragment = adapter.getFragment(0) as RealTimeRGBFragment
         lineGraphFragment = adapter.getFragment(1) as LineGraphFragment
 
-
-        if (checkCameraPermission()) {
-            Log.d(TAG, "Camera permission granted")
-            setupCameraPreview()
-        } else {
-            requestCameraPermission() // TODO: Handle permission request result (se do ok app rimane bloccata)
-        }
-
-        applicationScope.launch{
-            while (true) {
-                /*if(camera != null){*/
-                    val lastData = repository.getLastInsertedData()
-                    // Delete data older than 5 minutes before the last data acquisition
-                    lastData?.let {
-                        val startId = it.id - (5 * 1350) // 1350 = 22.5 samples/sec * 60 sec
-                        repository.deleteOldData(startId)
-                        Log.d("DatabaseRoom", "Deleted too old data => id < $startId")
-                    }
-                /*}*/
-                delay(60000)
-            }
-        }
+        setupCameraPreview()
     }
 
-
+    // Set up the ViewPager with the fragments
     private fun setupViewPager(viewPager: ViewPager) {
         val adapter = ViewPagerAdapter(supportFragmentManager)
         realTimeRGBFragment = RealTimeRGBFragment()
@@ -139,59 +97,60 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = adapter
     }
 
+    // Set up the camera preview on the SurfaceView
     private fun setupCameraPreview() {
+        Log.v(MAIN, "Setting up camera preview")
         val holder: SurfaceHolder = cameraPreview.holder
+
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
-                if (!isSurfaceCreated) {
-                    Log.d(TAG, "Surface created")
-                    isSurfaceCreated = true
-                    previousSurfaceWidth = cameraPreview.width
-                    previousSurfaceHeight = cameraPreview.height
+                //Log.i(MAIN, "Surface created")
+                if (!checkCameraPermission()) {
+                    requestCameraPermission()
+                } else {
+                    //Log.v(MAIN, "surfaceCreated calls initializeCameraAsync")
                     initializeCameraAsync(holder)
                 }
             }
-
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
-                if (camera != null && (width != previousSurfaceWidth || height != previousSurfaceHeight)) {
-                    Log.d(TAG, "Surface changed")
+                //Log.i(MAIN, "Surface changed from [${savedPreviewSize?.get(0)} x ${savedPreviewSize?.get(1)}] to [$width x $height]")
+                if (camera != null && (width != savedPreviewSize?.get(0) || height != savedPreviewSize?.get(1))) {
+                    //Log.v(MAIN, "surfaceChanged calls initializeCameraAsync")
                     camera?.stopPreview()
-                    previousSurfaceWidth = width
-                    previousSurfaceHeight = height
                     initializeCameraAsync(holder)
                 }
             }
-
             override fun surfaceDestroyed(holder: SurfaceHolder) {
-                if(isSurfaceCreated){
-                    releaseCamera()
-                    isSurfaceCreated = false
-                    Log.d(TAG, "Surface destroyed")
-                }
+                releaseCamera()
+                Log.d(MAIN, "Surface destroyed")
             }
         })
     }
 
+    // TODO: capire se usare thread o no (guarda documentazione + lezione)
+    // Initialize the camera asynchronously
     private fun initializeCameraAsync(holder: SurfaceHolder) {
-        Thread {
+        //Thread {
             try {
                 if (camera == null) {
                     camera = Camera.open()
+                    Log.v(MAIN, "Camera opened")
                 }
                 adjustCameraOrientation()
                 val params = camera?.parameters
 
                 savedPreviewSize?.let {
-                    params?.setPreviewSize(it.width, it.height)
+                    Log.i(MAIN, "Restoring preview size: ${it[0]} x ${it[1]}")
+                    params?.setPreviewSize(it[0], it[1])
                 } ?: run {
                     val supportedPreviewSizes = params?.supportedPreviewSizes
                     val minPreviewSize = supportedPreviewSizes?.minByOrNull { it.width * it.height }
                     minPreviewSize?.let {
+                        savedPreviewSize = intArrayOf(it.width, it.height)
                         params.setPreviewSize(it.width, it.height)
-                        savedPreviewSize = it
                     }
+                    Log.i(MAIN, "Preview size set to: ${savedPreviewSize?.get(0)} x ${savedPreviewSize?.get(1)}")
                 }
-
                 savedPreviewFpsRange?.let {
                     params?.setPreviewFpsRange(it[0], it[1])
                 } ?: run {
@@ -207,61 +166,78 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
 
-                camera?.parameters = params
-                camera?.setPreviewDisplay(holder)
-                camera?.startPreview()
+                camera?.apply {
+                    parameters = params
 
-                camera?.setPreviewCallback { data, camera ->
-                    val previewSize = camera.parameters.previewSize
-                    val (avgRed, avgGreen, avgBlue) = calculateAverageColor(
-                        data,
-                        previewSize.width,
-                        previewSize.height
-                    )
+                    setPreviewCallback { data, camera ->
+                        val previewSize = camera.parameters.previewSize
+                        val (avgRed, avgGreen, avgBlue) = calculateAverageColor(
+                            data,
+                            previewSize.width,
+                            previewSize.height
+                        )
 
-                    if (avgRed != -1 && avgGreen != -1 && avgBlue != -1){
-                        runOnUiThread {
-                            if (realTimeRGBFragment.view != null) {
-                                realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                        if (avgRed > -1 && avgGreen > -1 && avgBlue > -1){
+                            if (camera != null) {
+                                runOnUiThread {
+                                    if (realTimeRGBFragment.view != null) {
+                                        realTimeRGBFragment.updateRGBValues(avgRed, avgGreen, avgBlue)
+                                    }
+                                    //Log.d(MAIN, "Preview callback")
+                                }
+                                manageNewData(avgRed, avgGreen, avgBlue)
                             }
-                            //Log.d(TAG, "Preview callback")
                         }
-                        manageNewData(avgRed, avgGreen, avgBlue)
+
                     }
 
+                    setPreviewDisplay(holder)
+                    startPreview()
+                    Log.v(MAIN, "Camera preview started")
                 }
-                Log.d(TAG, "Camera setup successful")
+                Log.d(MAIN, "Camera setup successful")
             } catch (e: Exception) {
                 releaseCamera()
-                Log.e(TAG, "Camera setup failed", e)
+                Log.e(MAIN, "Camera setup failed", e)
             }
-        }.start()
+        //}.start()
     }
 
-    private fun manageNewData(avgRed: Int, avgGreen: Int, avgBlue: Int) = applicationScope.launch{
-        val currentTime = System.currentTimeMillis()
-
+    // Manage new data collected from the callback
+    private fun manageNewData(avgRed: Int, avgGreen: Int, avgBlue: Int) = lifecycleScope.launch{
         // Save color data to database
-        val colorData = ColorData(
-            timestamp = currentTime,
+        ColorData(
+            timestamp = System.currentTimeMillis(),
             red = avgRed,
             green = avgGreen,
             blue = avgBlue
-        )
-        repository.insert(colorData)
+        ).let {
+            // Save data to database
+            repository.insert(it)
+        }
 
-        // Update line graph with the last 5 minutes of collected data
-        val lastFiveMinData = repository.getDataAfter(
-            colorData.id - (5 * 1350) // 1350 = 22.5 samples/sec * 60 sec
-        )
-        runOnUiThread{
-            if (lineGraphFragment.view != null) {
-                lineGraphFragment.updateGraph(lastFiveMinData, creationDataID)
-                //Log.d("DatabaseRoom", "startId: $creationDataID")
+        repository.getLastInsertedData()?.let{
+            // Clean up old data
+            val startId = it.id - MAX_TIME
+            repository.deleteOldData(startId)
+            //Log.d(DBR, "Last ID = ${it.id} : deleted too old data => id < $startId")
+
+            // Update line graph with the last 5 minutes of collected data
+            repository.getDataAfter(
+                startId
+            ).let{
+                runOnUiThread {
+                    if (lineGraphFragment.view != null) {
+                        lineGraphFragment.updateGraph(it, creationDataID)
+                        //Log.d(DBR, "startId: $creationDataID")
+                    }
+                }
             }
         }
     }
 
+    // TODO: controlla logiche ogni funzione qua dentro
+    // Adjust camera orientation based on device rotation
     private fun adjustCameraOrientation() {
         val rotation = windowManager.defaultDisplay.rotation
         var degrees = 0
@@ -271,40 +247,56 @@ class MainActivity : AppCompatActivity() {
             Surface.ROTATION_180 -> degrees = 180
             Surface.ROTATION_270 -> degrees = 270
         }
-
         val info = Camera.CameraInfo()
         Camera.getCameraInfo(Camera.CameraInfo.CAMERA_FACING_BACK, info)
         val result = (info.orientation - degrees + 360) % 360
         camera?.setDisplayOrientation(result)
     }
 
+    // Manage camera release
     private fun releaseCamera() {
-        camera?.setPreviewCallback(null)
-        camera?.stopPreview()
-        camera?.release()
-        camera = null
-        Log.d(TAG, "Camera released")
-    }
-
-    private fun checkCameraPermission(): Boolean {
-        return ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED
-    }
-
-    private fun requestCameraPermission() {
-        ActivityCompat.requestPermissions(this, arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST_CODE)
-    }
-
-    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
-        if (requestCode == CAMERA_REQUEST_CODE) {
-            if (grantResults.isNotEmpty() && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-                setupCameraPreview()
-            } else {
-                Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
-            }
+        camera?.apply {
+            setPreviewCallback(null)
+            stopPreview()
+            release()
+            camera = null
+            Log.d(MAIN, "Camera released")
         }
     }
 
+    /** @return true if the camera permission is granted, false otherwise */
+    private fun checkCameraPermission(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            this,
+            Manifest.permission.CAMERA
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+
+    /** Requests the camera permission using [requestPermissions]*/
+    private fun requestCameraPermission() {
+        ActivityCompat.requestPermissions(
+            this,
+            arrayOf(Manifest.permission.CAMERA),
+            CAMERA_REQUEST_CODE
+        )
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<String>, grantResults: IntArray) {
+        if (requestCode == CAMERA_REQUEST_CODE) {
+            if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
+                Toast.makeText(this, getString(R.string.camera_permission_granted), Toast.LENGTH_SHORT).show()
+                //Log.i(MAIN, "Camera permission granted")
+                Log.v(MAIN, "requestCameraPermission calls initializeCameraAsync")
+                initializeCameraAsync(cameraPreview.holder)
+            } else {
+                Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        }
+    }
+
+    // TODO: scrivi documentazione fatta bene con /** ... */
     private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
         // 1. Creation of a Mat for YUV data
         val yuv = Mat(height + height/2, width, CvType.CV_8UC1)
@@ -341,66 +333,80 @@ class MainActivity : AppCompatActivity() {
             // 7. Return average values as a Triple
             return Triple(avgRed, avgGreen, avgBlue)
         } catch (e: NullPointerException) {
-            Log.e(TAG, "Error calculating average color")
+            Log.e(MAIN, "Error calculating average color")
             return Triple(-1, -1, -1)
         }
     }
 
     override fun onPause() {
+        Log.d(MAIN, "onPause")
         super.onPause()
-        Log.d(TAG, "onPause")
         releaseCamera()
     }
 
+    // TODO: elimina
     override fun onResume() {
         super.onResume()
-        Log.d(TAG, "onResume")
-        if (checkCameraPermission()) {
-            setupCameraPreview()
-        }
+        Log.d(MAIN, "onResume")
     }
 
+    // TODO: elimina
     override fun onStop() {
+        Log.d(MAIN, "onStop")
         super.onStop()
-        Log.d(TAG, "onStop")
     }
 
+    // TODO: elimina
     override fun onDestroy() {
+        Log.d(MAIN, "onDestroy")
         super.onDestroy()
-        Log.d(TAG, "onDestroy")
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
+        Log.d(MAIN, "onSaveInstanceState")
         super.onSaveInstanceState(outState)
-        Log.d(TAG, "onSaveInstanceState")
 
         outState.putInt("creationDataID", creationDataID)
-        supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
-        supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
 
         savedPreviewSize?.let{
-            outState.putInt("previewWidth", it.width)
-            outState.putInt("previewHeight", it.height)
+            outState.putInt("previewWidth", it[0])
+            outState.putInt("previewHeight", it[1])
         }
         savedPreviewFpsRange?.let{
             outState.putIntArray("previewFpsRange", it)
         }
+
+        // TODO: controlla corretta implementazione salvataggio fragment
+        try {
+            supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
+            supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
+        } catch (e: IllegalStateException){
+            Log.e(MAIN, "Error saving fragments", e)
+        }
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        Log.d(TAG, "onRestoreInstanceState")
+        Log.d(MAIN, "onRestoreInstanceState")
         super.onRestoreInstanceState(savedInstanceState)
 
         creationDataID = savedInstanceState.getInt("creationDataID")
+
+        savedPreviewSize = intArrayOf(
+            savedInstanceState.getInt("previewWidth"),
+            savedInstanceState.getInt("previewHeight")
+        )
+        savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")
+
+        // TODO: controlla corretta implementazione ripristino fragment
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
         lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
-
-        savedPreviewSize = camera?.Size(savedInstanceState.getInt("previewWidth"), savedInstanceState.getInt("previewHeight"))
-        savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")
     }
 
     companion object {
+        private const val SPM = 1350 // 22.5 samples/sec * 60 sec
+        private const val MAX_TIME = SPM * 5 // change here to set the max time for data collection
         private const val CAMERA_REQUEST_CODE = 100
-        private const val TAG = "MainActivity"
+        private const val MAIN = "MainActivity"
+        private const val DBR = "DatabaseRoom"
     }
 }

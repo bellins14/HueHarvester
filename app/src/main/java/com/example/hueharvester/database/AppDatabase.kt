@@ -1,10 +1,11 @@
-package com.example.hueharvester
+package com.example.hueharvester.database
 
 import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import android.content.Context
 
+// TODO: commenta bene e documenta
 @Database(entities = [ColorData::class], version = 2, exportSchema = false)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun colorDataDao(): ColorDataDao

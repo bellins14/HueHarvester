@@ -1,9 +1,10 @@
-package com.example.hueharvester
+package com.example.hueharvester.database
 
 import androidx.room.Dao
 import androidx.room.Insert
 import androidx.room.Query
 
+// TODO: commenta bene e documenta
 @Dao
 interface ColorDataDao {
     @Insert

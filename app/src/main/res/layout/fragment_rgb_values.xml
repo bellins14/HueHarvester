@@ -16,8 +16,8 @@
             android:id="@+id/red_text_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="R = 0"
-            android:textSize="18sp"
+            android:text="@string/red_txt"
+            android:textSize="25sp"
             android:textColor="@color/black"
             android:gravity="center"/>
     </FrameLayout>
@@ -32,8 +32,8 @@
             android:id="@+id/green_text_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="G = 0"
-            android:textSize="18sp"
+            android:text="@string/green_txt"
+            android:textSize="25sp"
             android:textColor="@color/black"
             android:gravity="center"/>
     </FrameLayout>
@@ -48,8 +48,8 @@
             android:id="@+id/blue_text_view"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:text="B = 0"
-            android:textSize="18sp"
+            android:text="@string/blue_txt"
+            android:textSize="25sp"
             android:textColor="@color/black"
             android:gravity="center"/>
     </FrameLayout>
@@ -65,7 +65,7 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:text="@string/avg_color_txt"
-            android:textSize="18sp"
+            android:textSize="25sp"
             android:textColor="@color/black"
             android:gravity="center"/>
     </FrameLayout>

@@ -9,5 +9,9 @@
     <string name="viewPager_content" translatable="false">ViewPager section</string>
     <string name="tabLayout_content" translatable="false">TabLayout section</string>
 
+    <string name="red_txt" translatable="false">R = %1$s</string>
+    <string name="green_txt" translatable="false">G = %1$s</string>
+    <string name="blue_txt" translatable="false">B = %1$s</string>
     <string name="avg_color_txt">Average Color</string>
+    <string name="camera_permission_granted">Camera permission granted</string>
 </resources>

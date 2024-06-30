@@ -1,6 +1,8 @@
-package com.example.hueharvester
+package com.example.hueharvester.database
 
 import androidx.annotation.WorkerThread
+
+// TODO: commenta bene e documenta
 
 // Declares the DAO as a private property in the constructor. Pass in the DAO
 // instead of the whole database, because you only need access to the DAO

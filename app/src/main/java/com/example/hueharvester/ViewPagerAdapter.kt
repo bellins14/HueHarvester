@@ -6,6 +6,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 
+// TODO: commenta bene e documenta
 class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(manager) {
 
     private val fragmentList: MutableList<Fragment> = ArrayList()
@@ -19,6 +20,7 @@ class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(man
         return fragmentList.size
     }
 
+    /** Adds a fragment to [fragmentList] and the fragment title to [fragmentTitleList] */
     fun addFragment(fragment: Fragment, title: String) {
         fragmentList.add(fragment)
         fragmentTitleList.add(title)
@@ -28,6 +30,10 @@ class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(man
         return fragmentTitleList[position]
     }
 
+
+    /** Returns the fragment at the given position in [fragmentList]
+     * @param position The position of the fragment requested
+     * @return [Fragment] */
     fun getFragment(position: Int): Fragment {
         return fragmentList[position]
     }
