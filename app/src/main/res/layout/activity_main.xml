@@ -6,6 +6,13 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
+    <!--<androidx.constraintlayout.widget.Guideline
+        android:id="@+id/guideline"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        app:layout_constraintLeft_toLeftOf="@id/view_pager" />-->
+
 
         <!-- Camera preview SurfaceView -->
     <SurfaceView
@@ -14,10 +21,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tab_layout"
+        app:layout_constraintEnd_toEndOf="@id/tab_layout"
         app:layout_constraintBottom_toTopOf="@id/view_pager"
-        android:layout_margin="8dp"/>
+        android:layout_margin="4dp"/>
 
     <!-- ViewPager for switching between RGB values and the graph -->
     <androidx.viewpager.widget.ViewPager
@@ -26,19 +33,10 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         app:layout_constraintTop_toBottomOf="@id/camera_preview"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="@id/tab_layout"
+        app:layout_constraintEnd_toEndOf="@id/tab_layout"
         app:layout_constraintBottom_toTopOf="@id/tab_layout"
-        android:layout_margin="8dp" />
-
-        <!--<com.google.android.material.tabs.TabLayout
-            android:id="@+id/tabLayout"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_gravity="bottom"
-            app:tabGravity="center" />
-
-    </androidx.viewpager.widget.ViewPager>-->
+        android:layout_margin="0dp" />
 
     <!-- TabLayout -->
     <com.google.android.material.tabs.TabLayout
@@ -49,8 +47,8 @@
         app:tabGravity="center"
 
         app:layout_constraintTop_toBottomOf="@id/view_pager"
-        app:layout_constraintStart_toStartOf="@id/view_pager"
-        app:layout_constraintEnd_toEndOf="@id/view_pager"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintBottom_toBottomOf="parent"
         android:layout_margin="8dp" />
 

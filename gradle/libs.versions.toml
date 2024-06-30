@@ -9,12 +9,14 @@ daggerCompiler = "2.51.1"
 espressoCoreVersion = "3.4.0"
 firebaseCrashlyticsBuildtools = "3.0.2"
 googleMaterial = "1.8.0"
+gradle = "8.3.2"
 kotlin = "1.9.0"
 coreKtx = "1.13.1"
 junit = "4.13.2"
 junitVersion = "1.1.5"
 espressoCore = "3.5.1"
 appcompat = "1.6.1"
+lifecycleLivedataKtx = "2.7.0"
 material = "1.12.0"
 materialVersion = "1.3.0"
 mpandroidchart = "v3.1.0"
@@ -32,6 +34,8 @@ androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = 
 androidx-core-ktx-v190 = { module = "androidx.core:core-ktx", version.ref = "coreKtxVersion" }
 androidx-espresso-core-v340 = { module = "androidx.test.espresso:espresso-core", version.ref = "espressoCoreVersion" }
 androidx-junit-v113 = { module = "androidx.test.ext:junit", version.ref = "androidxJunit" }
+androidx-lifecycle-common-java8 = { module = "androidx.lifecycle:lifecycle-common-java8", version.ref = "lifecycleLivedataKtx" }
+androidx-lifecycle-livedata-ktx = { module = "androidx.lifecycle:lifecycle-livedata-ktx", version.ref = "lifecycleLivedataKtx" }
 androidx-room-compiler = { module = "androidx.room:room-compiler", version.ref = "roomTesting" }
 androidx-room-compiler-v250 = { module = "androidx.room:room-compiler", version.ref = "roomCompiler" }
 androidx-room-ktx = { module = "androidx.room:room-ktx", version.ref = "roomTesting" }
@@ -42,6 +46,7 @@ androidx-room-testing = { module = "androidx.room:room-testing", version.ref = "
 artifactId = { module = "groupId:artifactId", version.ref = "artifactid" }
 dagger-compiler = { module = "com.google.dagger:dagger-compiler", version.ref = "daggerCompiler" }
 firebase-crashlytics-buildtools = { module = "com.google.firebase:firebase-crashlytics-buildtools", version.ref = "firebaseCrashlyticsBuildtools" }
+gradle = { module = "com.android.tools.build:gradle", version.ref = "gradle" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }
 androidx-junit = { group = "androidx.test.ext", name = "junit", version.ref = "junitVersion" }
 androidx-espresso-core = { group = "androidx.test.espresso", name = "espresso-core", version.ref = "espressoCore" }

@@ -18,7 +18,6 @@ android {
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
-
     buildTypes {
         release {
             minifyEnabled false
@@ -39,6 +38,9 @@ android {
             }
         }
     }
+    viewBinding {
+        enabled = true
+    }
 }
 
 dependencies {
@@ -50,13 +52,14 @@ dependencies {
 
     // TODO: Controlla se aggiornando versioni qua funziona tutto
     // Room components
-    implementation "androidx.room:room-ktx:$rootProject.roomVersion"
-    kapt "androidx.room:room-compiler:$rootProject.roomVersion"
-    androidTestImplementation "androidx.room:room-testing:$rootProject.roomVersion"
+    implementation libs.androidx.room.ktx
+    //noinspection KaptUsageInsteadOfKsp
+    kapt libs.androidx.room.compiler
+    androidTestImplementation libs.androidx.room.testing
 
     // Lifecycle components
-    implementation "androidx.lifecycle:lifecycle-livedata-ktx:$rootProject.lifecycleVersion"
-    implementation "androidx.lifecycle:lifecycle-common-java8:$rootProject.lifecycleVersion"
+    implementation libs.androidx.lifecycle.livedata.ktx
+    implementation libs.androidx.lifecycle.common.java8
 
     // MPAndroidChart
     implementation libs.mpandroidchart
