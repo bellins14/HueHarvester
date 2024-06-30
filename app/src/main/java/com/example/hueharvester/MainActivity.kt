@@ -26,8 +26,11 @@ import org.opencv.core.Mat
 import org.opencv.imgproc.Imgproc
 import java.lang.NullPointerException
 
-// TODO: disattiva tutti Log in tutti i file
+/** Main activity of the application
+ *  It manages the camera preview and the data collection
+ */
 class MainActivity : AppCompatActivity() {
+
     private lateinit var viewPager: ViewPager
     private lateinit var tabLayout: TabLayout
     private lateinit var realTimeRGBFragment: RealTimeRGBFragment
@@ -49,7 +52,7 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        Log.d(MAIN, "onCreate")
+        //Log.d(MAIN, "onCreate")
 
         setContentView(R.layout.activity_main)
 
@@ -66,7 +69,6 @@ class MainActivity : AppCompatActivity() {
         setupViewPager(viewPager)
         tabLayout.setupWithViewPager(viewPager, true)
 
-        // TODO: usa .let{}
         val adapter = viewPager.adapter as ViewPagerAdapter
         realTimeRGBFragment = adapter.getFragment(0) as RealTimeRGBFragment
         lineGraphFragment = adapter.getFragment(1) as LineGraphFragment
@@ -76,7 +78,14 @@ class MainActivity : AppCompatActivity() {
         setupCameraPreview()
     }
 
-    // Set up the ViewPager with the fragments
+    /** Set up the ViewPager with the two fragments
+     *  @param viewPager the ViewPager to set up
+     *
+     *  @see ViewPagerAdapter
+     *  @see RealTimeRGBFragment
+     *  @see LineGraphFragment
+     *  @see ColorDataViewModel
+     */
     private fun setupViewPager(viewPager: ViewPager) {
         val adapter = ViewPagerAdapter(supportFragmentManager)
         realTimeRGBFragment = RealTimeRGBFragment()
@@ -86,27 +95,37 @@ class MainActivity : AppCompatActivity() {
         viewPager.adapter = adapter
     }
 
-    // Observe the LiveData from the ViewModel
+    /** Observe the data collection from the database
+     *  @param savedInstanceState the Bundle to save the data IDs
+     *
+     *  @see ColorDataViewModel
+     *  @see ColorData
+     *  @see LineGraphFragment
+     *  @see RealTimeRGBFragment
+     *
+     *  @throws NoSuchElementException if there is no data in the database
+     */
     private fun observeData(savedInstanceState: Bundle?) {
         viewModel.allColorData.observe(this) { dataList ->
             if (!isIdSaved) {
                 // Set the data collection starting point
                 savedInstanceState?.let {
-                    Log.d(DBR, "Creation data ID from BUNDLE: ${it.getInt("creationDataID")}")
-                    Log.d(DBR, "Last data ID from BUNDLE: ${it.getInt("lastDataID")}")
+                    //Log.d(DBR, "Creation data ID from BUNDLE: ${it.getInt("creationDataID")}")
+                    //Log.d(DBR, "Last data ID from BUNDLE: ${it.getInt("lastDataID")}")
                 } ?: try {
                     run {
                         dataList.last().let {
                             creationDataID = it.id
                             lastDataID = it.id
-                            Log.d(DBR, "Creation data ID from ROOM: $creationDataID")
-                            Log.d(DBR, "Last data ID from ROOM: $lastDataID")
+                            //Log.d(DBR, "Creation data ID from ROOM: $creationDataID")
+                            //Log.d(DBR, "Last data ID from ROOM: $lastDataID")
                         }
                     }
                 } catch (e: NoSuchElementException) {
-                    Log.i(DBR, "No data in the database")
-                    Log.d(DBR, "Creation data ID: $creationDataID")
-                    Log.d(DBR, "Last data ID: $lastDataID")
+                    Log.e(DBR, "No data in the database", e)
+                    //Log.i(DBR, "No data in the database")
+                    //Log.d(DBR, "Creation data ID: $creationDataID")
+                    //Log.d(DBR, "Last data ID: $lastDataID")
                 }
                 isIdSaved = true
             }
@@ -135,9 +154,13 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // Set up the camera preview on the SurfaceView
+    /** Set up the camera preview on the [SurfaceView]
+     *  It manages the camera permission request and the camera initialization
+     *  @see SurfaceHolder
+     *  @see Camera
+     */
     private fun setupCameraPreview() {
-        Log.v(MAIN, "Setting up camera preview")
+        //Log.v(MAIN, "Setting up camera preview")
         val holder: SurfaceHolder = cameraPreview.holder
 
         holder.addCallback(object : SurfaceHolder.Callback {
@@ -165,21 +188,27 @@ class MainActivity : AppCompatActivity() {
                 }
             }
             override fun surfaceDestroyed(holder: SurfaceHolder) {
-                Log.d(MAIN, "Surface destroyed")
+                //Log.d(MAIN, "Surface destroyed")
                 releaseCamera()
                 isSurfaceCreated = false
             }
         })
     }
 
-    // TODO: capire se usare thread o no (guarda documentazione + lezione)
-    // Initialize the camera asynchronously
+    /** Initialize the camera asynchronously
+     *  It sets the camera preview size and the preview frame rate
+     *  @param holder the [SurfaceHolder] to set the camera preview
+     *
+     *  @see Camera
+     *  @see Camera.Parameters
+     *  @see SurfaceHolder
+     */
     private fun initializeCameraAsync(holder: SurfaceHolder) {
         Thread {
             try {
                 if (camera == null) {
                     camera = Camera.open()
-                    Log.i(MAIN, "Camera opened")
+                    //Log.i(MAIN, "Camera opened")
                 }
 
                 adjustCameraOrientation()
@@ -229,7 +258,7 @@ class MainActivity : AppCompatActivity() {
 
                     setPreviewDisplay(holder)
                     startPreview()
-                    Log.v(MAIN, "Camera preview started")
+                    //Log.v(MAIN, "Camera preview started")
                 }
                 Log.d(MAIN, "Camera setup successful")
             } catch (e: Exception) {
@@ -239,9 +268,16 @@ class MainActivity : AppCompatActivity() {
         }.start()
     }
 
-    // Manage new data collected from the callback
+    /** Manage the new data collected from the camera
+     *  It saves the color data to the database
+     *  @param avgRed the average red value
+     *  @param avgGreen the average green value
+     *  @param avgBlue the average blue value
+     *
+     *  @see ColorData
+     *  @see ColorDataViewModel
+     */
     private fun manageNewData(avgRed: Int, avgGreen: Int, avgBlue: Int) {
-        // Save color data to database
         ColorData(
             id = ++lastDataID,
             timestamp = System.currentTimeMillis(),
@@ -249,13 +285,16 @@ class MainActivity : AppCompatActivity() {
             green = avgGreen,
             blue = avgBlue
         ).let {
-            // Save data to database
             viewModel.insert(it)
         }
     }
 
-    // TODO: controlla logiche ogni funzione qua dentro
-    // Adjust camera orientation based on device rotation
+    /** Adjust the camera orientation based on the device rotation
+     * It uses the [Camera.CameraInfo] to get the camera orientation
+     * and the [Surface] to get the device rotation value
+     *  @see Camera.CameraInfo
+     *  @see Surface
+     * */
     private fun adjustCameraOrientation() {
         val rotation = windowManager.defaultDisplay.rotation
         var degrees = 0
@@ -271,19 +310,24 @@ class MainActivity : AppCompatActivity() {
         camera?.setDisplayOrientation(result)
     }
 
-    // Manage camera release
+    /** Release the camera resources
+     *  It stops the camera preview and releases the camera
+     *  @see Camera
+     */
     private fun releaseCamera() {
-        Log.v(MAIN, "Releasing camera")
+        //Log.v(MAIN, "Releasing camera")
         camera?.apply {
             setPreviewCallback(null)
             stopPreview()
             release()
             camera = null
-            Log.i(MAIN, "Camera released")
+            Log.d(MAIN, "Camera released")
         }
     }
 
-    /** @return true if the camera permission is granted, false otherwise */
+    /** Checks if the camera permission is granted
+     *  @return true if the camera permission is granted, false otherwise
+     */
     private fun checkCameraPermission(): Boolean {
         return ContextCompat.checkSelfPermission(
             this,
@@ -291,7 +335,9 @@ class MainActivity : AppCompatActivity() {
         ) == PackageManager.PERMISSION_GRANTED
     }
 
-    /** Requests the camera permission using [requestPermissions]*/
+    /** Requests the camera permission
+     *  It requests the camera permission to the user via [requestPermissions]
+     */
     private fun requestCameraPermission() {
         ActivityCompat.requestPermissions(
             this,
@@ -305,7 +351,7 @@ class MainActivity : AppCompatActivity() {
             if (grantResults.isNotEmpty() && (grantResults[0] == PackageManager.PERMISSION_GRANTED)) {
                 Toast.makeText(this, getString(R.string.camera_permission_granted), Toast.LENGTH_SHORT).show()
                 //Log.i(MAIN, "Camera permission granted")
-                Log.v(MAIN, "requestCameraPermission calls initializeCameraAsync")
+                //Log.v(MAIN, "requestCameraPermission calls initializeCameraAsync")
                 initializeCameraAsync(cameraPreview.holder)
             } else {
                 Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
@@ -315,7 +361,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    // TODO: scrivi documentazione fatta bene con /** ... */
+    /** Calculate the average color from the YUV data
+     *  It converts the YUV data to RGB and calculates the average RGB values
+     *  @param data the YUV data
+     *  @param width the width of the frame
+     *  @param height the height of the frame
+     *  @return a [Triple] containing the average red, green and blue values
+     *
+     *  @see Mat
+     *  @see Imgproc
+     */
     private fun calculateAverageColor(data: ByteArray, width: Int, height: Int): Triple<Int, Int, Int> {
         // 1. Creation of a Mat for YUV data
         val yuv = Mat(height + height/2, width, CvType.CV_8UC1)
@@ -358,38 +413,20 @@ class MainActivity : AppCompatActivity() {
             return Triple(avgRed, avgGreen, avgBlue)
         } catch (e: NullPointerException) {
             Log.e(MAIN, "Error calculating average color")
-            Log.i(MAIN, "Returning default values due to Error")
+            //Log.i(MAIN, "Returning default values due to Error")
             return Triple(0, 0, 0)
         }
     }
 
     override fun onPause() {
-        Log.d(MAIN, "onPause")
+        //Log.d(MAIN, "onPause")
         super.onPause()
         releaseCamera()
     }
 
-    // TODO: elimina
-    override fun onResume() {
-        super.onResume()
-        Log.d(MAIN, "onResume")
-    }
-
-    // TODO: elimina
-    override fun onStop() {
-        Log.d(MAIN, "onStop")
-        super.onStop()
-    }
-
-    // TODO: elimina
-    override fun onDestroy() {
-        Log.d(MAIN, "onDestroy")
-        super.onDestroy()
-    }
-
     override fun onSaveInstanceState(outState: Bundle) {
-        Log.d(MAIN, "onSaveInstanceState")
         super.onSaveInstanceState(outState)
+        //Log.d(MAIN, "onSaveInstanceState")
 
         outState.putInt("creationDataID", creationDataID)
         outState.putInt("lastDataID", lastDataID)
@@ -402,7 +439,6 @@ class MainActivity : AppCompatActivity() {
             outState.putIntArray("previewFpsRange", it)
         }
 
-        // TODO: controlla corretta implementazione salvataggio fragment
         try {
             supportFragmentManager.putFragment(outState, "RealTimeRGBFragment", realTimeRGBFragment)
             supportFragmentManager.putFragment(outState, "LineGraphFragment", lineGraphFragment)
@@ -412,8 +448,8 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onRestoreInstanceState(savedInstanceState: Bundle) {
-        Log.d(MAIN, "onRestoreInstanceState")
         super.onRestoreInstanceState(savedInstanceState)
+        //Log.d(MAIN, "onRestoreInstanceState")
 
         creationDataID = savedInstanceState.getInt("creationDataID")
         lastDataID = savedInstanceState.getInt("lastDataID")
@@ -424,7 +460,6 @@ class MainActivity : AppCompatActivity() {
         )
         savedPreviewFpsRange = savedInstanceState.getIntArray("previewFpsRange")
 
-        // TODO: controlla corretta implementazione ripristino fragment
         realTimeRGBFragment = supportFragmentManager.getFragment(savedInstanceState, "RealTimeRGBFragment") as RealTimeRGBFragment
         lineGraphFragment = supportFragmentManager.getFragment(savedInstanceState, "LineGraphFragment") as LineGraphFragment
     }

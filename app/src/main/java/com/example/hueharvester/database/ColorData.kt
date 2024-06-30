@@ -4,7 +4,16 @@ import androidx.room.Entity
 import androidx.room.PrimaryKey
 import androidx.annotation.IntRange
 
-// TODO: commenta bene e documenta
+/**
+ * Data class that represents the data structure of the color_data table in the database.
+ * @constructor Creates a new ColorData object.
+ * @param id The unique identifier for the data entry.
+ * @param timestamp The timestamp of the data entry.
+ * @param red The red value of the color.
+ * @param green The green value of the color.
+ * @param blue The blue value of the color.
+ * @see Entity
+ */
 @Entity(tableName = "color_data")
 data class ColorData(
     @PrimaryKey(autoGenerate = false)

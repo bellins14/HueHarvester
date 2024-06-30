@@ -6,7 +6,9 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.FragmentManager
 import androidx.fragment.app.FragmentStatePagerAdapter
 
-// TODO: commenta bene e documenta
+/** Adapter for the ViewPager in the MainActivity
+ *  @see FragmentStatePagerAdapter
+ *  */
 class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(manager) {
 
     private val fragmentList: MutableList<Fragment> = ArrayList()
@@ -15,6 +17,7 @@ class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(man
     override fun getItem(position: Int): Fragment {
         return fragmentList[position]
     }
+
 
     override fun getCount(): Int {
         return fragmentList.size
@@ -25,6 +28,7 @@ class ViewPagerAdapter(manager: FragmentManager) : FragmentStatePagerAdapter(man
         fragmentList.add(fragment)
         fragmentTitleList.add(title)
     }
+
 
     override fun getPageTitle(position: Int): CharSequence {
         return fragmentTitleList[position]
