@@ -18,6 +18,12 @@ tasks.register('clean', Delete) {
 }
 
 ext {
-    roomVersion = '2.6.1'
+    activityVersion = '1.8.2'
+    appCompatVersion = '1.6.1'
+    constraintLayoutVersion = '2.1.4'
+    coreTestingVersion = '2.2.0'
+    coroutines = '1.6.0'
     lifecycleVersion = '2.7.0'
+    materialVersion = '1.11.0'
+    roomVersion = '2.6.1'
 }
