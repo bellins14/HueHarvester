@@ -1,6 +1,6 @@
 <resources>
     <string name="app_name" translatable="false">Hue Harvester</string>
-    <string name="RGB_values" translatable="false">RGB Values</string>
+    <string name="RGB_values">RGB Values</string>
     <string name="line_graph">Line Graph</string>
     <string name="no_data_text">Loading data…</string>
     <string name="camera_permission_required">Camera permission is required</string>
@@ -14,4 +14,7 @@
     <string name="blue_txt" translatable="false">B = %1$s</string>
     <string name="avg_color_txt">Average Color</string>
     <string name="camera_permission_granted">Camera permission granted</string>
+    <string name="red_graph_label">Red</string>
+    <string name="green_graph_label">Green</string>
+    <string name="blue_graph_label">Blue</string>
 </resources>

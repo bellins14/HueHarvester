@@ -7,4 +7,7 @@
 
     <string name="avg_color_txt">Colore Medio</string>
     <string name="camera_permission_granted">Accesso alla fotocamera consentito</string>
+    <string name="red_graph_label">Rosso</string>
+    <string name="green_graph_label">Verde</string>
+    <string name="blue_graph_label">Blu</string>
 </resources>

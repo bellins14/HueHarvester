@@ -78,11 +78,12 @@ class LineGraphFragment : Fragment() {
      * Updates the data displayed in the graphs.
      * @param data The list of [ColorData] objects to be displayed in the graphs
      * @param creationDataID The ID of the first [ColorData] object in the list
+     * @param samplePerMinute The number of samples per minute, used to calculate the x-axis values
      */
-    fun updateGraph(data: List<ColorData>, creationDataID: Int) {
-        redData = data.map { Entry((it.id-creationDataID) / 1350f, it.red.toFloat()) }
-        greenData = data.map { Entry((it.id-creationDataID) / 1350f, it.green.toFloat()) }
-        blueData = data.map { Entry((it.id-creationDataID) / 1350f, it.blue.toFloat()) }
+    fun updateGraph(data: List<ColorData>, creationDataID: Int, samplePerMinute: Float) {
+        redData = data.map { Entry((it.id-creationDataID) / samplePerMinute, it.red.toFloat()) }
+        greenData = data.map { Entry((it.id-creationDataID) / samplePerMinute, it.green.toFloat()) }
+        blueData = data.map { Entry((it.id-creationDataID) / samplePerMinute, it.blue.toFloat()) }
 
         drawGraph()
     }
@@ -93,17 +94,17 @@ class LineGraphFragment : Fragment() {
     private fun drawGraph() {
 
         if(redData.isNotEmpty() && greenData.isNotEmpty() && blueData.isNotEmpty()) {
-            val redDataSet = LineDataSet(redData, "Red").apply {
+            val redDataSet = LineDataSet(redData, getString(R.string.red_graph_label)).apply {
                 color = Color.RED
                 axisDependency = YAxis.AxisDependency.LEFT
                 setDrawCircles(false)
             }
-            val greenDataSet = LineDataSet(greenData, "Green").apply {
+            val greenDataSet = LineDataSet(greenData, getString(R.string.green_graph_label)).apply {
                 color = Color.GREEN
                 axisDependency = YAxis.AxisDependency.LEFT
                 setDrawCircles(false)
             }
-            val blueDataSet = LineDataSet(blueData, "Blue").apply {
+            val blueDataSet = LineDataSet(blueData, getString(R.string.blue_graph_label)).apply {
                 color = Color.BLUE
                 axisDependency = YAxis.AxisDependency.LEFT
                 setDrawCircles(false)

@@ -135,7 +135,7 @@ class MainActivity : AppCompatActivity() {
                 dataList.last().apply {
                     runOnUiThread {
                         if (lineGraphFragment.view != null) {
-                            lineGraphFragment.updateGraph(dataList, creationDataID)
+                            lineGraphFragment.updateGraph(dataList, creationDataID, SPM.toFloat())
                             //Log.d(DBR, "startId: $creationDataID")
                         }
                         if (realTimeRGBFragment.view != null) {
