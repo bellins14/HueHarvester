@@ -1,6 +1,8 @@
 # Hue Harvester
 Sviluppo del **Progetto C**  per il corso  “Elementi di programmazione di sistemi embedded” (6 CFU, codice INP8085258) edizione 2023-24.
 
+di Tommaso Bellinato | 2032597
+
 ## Specifiche di progetto
 
 Si chiede di implementare un’app per fornire il colore medio rilevato dalla fotocamera.
