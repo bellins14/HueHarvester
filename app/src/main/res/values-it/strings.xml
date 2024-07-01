@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="app_name">Hue Harvester (IT)</string>
     <string name="RGB_values">Valori RGB</string>
     <string name="line_graph">Grafico lineare</string>
     <string name="no_data_text">Caricamento dati…</string>

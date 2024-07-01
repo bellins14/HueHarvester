@@ -10,6 +10,7 @@ import android.view.ViewGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import com.example.hueharvester.database.ColorData
+import com.example.hueharvester.databinding.FragmentLineGraphBinding
 import com.github.mikephil.charting.charts.LineChart
 import com.github.mikephil.charting.components.XAxis
 import com.github.mikephil.charting.components.YAxis
@@ -33,7 +34,8 @@ import com.github.mikephil.charting.data.LineDataSet
  */
 class LineGraphFragment : Fragment() {
 
-    private lateinit var lineChart: LineChart
+    private var _binding: FragmentLineGraphBinding? = null
+    private val binding get() = _binding!!
     private var redData: List<Entry> = emptyList()
     private var greenData: List<Entry> = emptyList()
     private var blueData: List<Entry> = emptyList()
@@ -41,15 +43,13 @@ class LineGraphFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
-    ): View? {
+    ): View {
         //Log.d(TAG, "$TAG onCreateView")
+        _binding = FragmentLineGraphBinding.inflate(inflater, container, false)
 
-        val view = inflater.inflate(R.layout.fragment_line_graph, container, false)
-
-        lineChart = view.findViewById(R.id.line_chart)
         val textColor = ContextCompat.getColor(requireContext(), R.color.chart_text)
 
-        lineChart.apply {
+        binding.lineChart.apply {
             setNoDataText(getString(R.string.no_data_text))
             setTouchEnabled(true)
             setScaleEnabled(true)
@@ -71,7 +71,7 @@ class LineGraphFragment : Fragment() {
 
         drawGraph()
 
-        return view
+        return binding.root
     }
 
     /**
@@ -110,8 +110,8 @@ class LineGraphFragment : Fragment() {
                 setDrawCircles(false)
             }
             LineData(redDataSet, greenDataSet, blueDataSet).apply {
-                lineChart.data = this
-                lineChart.moveViewToX(this.entryCount.toFloat())
+                binding.lineChart.data = this
+                binding.lineChart.moveViewToX(this.entryCount.toFloat())
             }
             //Log.d(TAG, "$TAG updateGraph")
         }
@@ -161,6 +161,11 @@ class LineGraphFragment : Fragment() {
      */
     private fun bundleToEntry(bundle: Bundle): Entry {
         return Entry(bundle.getFloat("x"), bundle.getFloat("y"))
+    }
+
+    override fun onDestroyView() {
+        super.onDestroyView()
+        _binding = null
     }
 
     companion object {
