@@ -44,11 +44,11 @@ Per implementare la visualizzazione dei dati è consentito utilizzare librerie e
     - l’applicazione supporta in modo completo le lingue inglese (default) e italiano
 2. **Aggiornamento in Tempo Reale delle Interfacce**:
     - Aggiornamento continuo e fluido dei valori e dei grafici durante l'uso dell'app
-    - [**LiveData**](https://developer.android.com/topic/libraries/architecture/livedata) e [**ViewModel**](https://developer.android.com/topic/libraries/architecture/viewmodel) : per la gestione e l'aggiornamento dei dati in modo reattivo ed efficiente
-    - [**Room**](https://developer.android.com/kotlin/multiplatform/room) : per lo storage di 5 minuti di rilevamento dati
+    - [**`LiveData`**](https://developer.android.com/topic/libraries/architecture/livedata) e [**`ViewModel`**](https://developer.android.com/topic/libraries/architecture/viewmodel) : per la gestione e l'aggiornamento dei dati in modo reattivo ed efficiente
+    - [**`Room`**](https://developer.android.com/kotlin/multiplatform/room) : per lo storage di 5 minuti di rilevamento dati
 3. **UI Funzionante sia in Modalità Portrait che in Modalità Landscape**:
     - Adattabilità dell'interfaccia utente per funzionare correttamente in entrambe le orientazioni del dispositivo.
-    - [**ConstraintLayout**](https://developer.android.com/training/constraint-layout): Un layout manager versatile che facilita la creazione di UI responsive e adattabili a diverse dimensioni di schermo e orientazioni.
+    - [**`ConstraintLayout`**](https://developer.android.com/training/constraint-layout): Un layout manager versatile che facilita la creazione di UI responsive e adattabili a diverse dimensioni di schermo e orientazioni.
 4. **Consistenza dello Stato dell'App in Background**:
     - Gestione del ciclo di vita dell'app, in modo che non si blocchi e rimanga in uno stato consistente quando va in background.
 5. **Impostazione della Dimensione e del Frame Rate dell'Anteprima ai Valori Minimi Supportati**:
@@ -61,4 +61,4 @@ Per implementare la visualizzazione dei dati è consentito utilizzare librerie e
 
 ### Considerazioni Finali
 
-L'uso di View Binding nel progetto garantisce che le interazioni con le viste siano sicure e prive di errori di runtime, migliorando al contempo la leggibilità e la manutenibilità del codice. Questa pratica, insieme all'uso di altre tecnologie e librerie come LiveData, ViewModel, Room e ConstraintLayout, contribuisce a creare un'app robusta e performante.
+L'uso di View Binding nel progetto garantisce che le interazioni con le viste siano sicure e prive di errori di runtime, migliorando al contempo la leggibilità e la manutenibilità del codice. Questa pratica, insieme all'uso di altre tecnologie e librerie come `LiveData`, `ViewModel`, `Room` e `ConstraintLayout`, contribuisce a creare un'app robusta e performante.
