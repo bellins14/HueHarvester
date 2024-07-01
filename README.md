@@ -1,7 +1,7 @@
 # Hue Harvester
-Sviluppo del **Progetto C**  per il corso  “Elementi di programmazione di sistemi embedded” (6 CFU, codice INP8085258) edizione 2023-24.
+di Tommaso Bellinato | [2032597](https://stem.elearning.unipd.it/user/profile.php?id=3804)
 
-di Tommaso Bellinato | 2032597
+Sviluppo del "**Progetto C**"  per il corso  “Elementi di programmazione di sistemi embedded” (6 CFU, codice INP8085258) edizione 2023-24.
 
 ## Specifiche di progetto
 
