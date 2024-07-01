@@ -41,5 +41,4 @@
         app:layout_constraintStart_toEndOf="@id/camera_preview"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_margin="8dp" />
-
 </androidx.constraintlayout.widget.ConstraintLayout>
