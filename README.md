@@ -1,64 +1,67 @@
 # Hue Harvester
-di Tommaso Bellinato | [2032597](https://stem.elearning.unipd.it/user/profile.php?id=3804)
 
-Sviluppo del "**Progetto C**"  per il corso  “Elementi di programmazione di sistemi embedded” (6 CFU, codice INP8085258) edizione 2023-24.
+[![Italiano](https://img.shields.io/badge/lang-italiano-green.svg)](README.it.md)
 
-## Specifiche di progetto
+by Tommaso Bellinato | [2032597](https://stem.elearning.unipd.it/user/profile.php?id=3804)
 
-Si chiede di implementare un’app per fornire il colore medio rilevato dalla fotocamera.
+Development of the **"Project C"** for the “Elements of Embedded Systems Programming” course (6 ECTS, code INP8085258) 2023-24 edition.
 
-- Una prima interfaccia dell’app deve mostrare
-    1. l’anteprima della fotocamera e
-    2. il valore medio calcolato per ciascuna delle tre componenti colore
-    3. con aggiornamento in tempo reale
-- Una seconda interfaccia deve mostrare per ciascuna delle tre componenti colore
-    1. i valori medi degli ultimi cinque minuti
-    2. in maniera grafica
-    3. con aggiornamento in tempo reale
-- Non è richiesto che il calcolo e la registrazione dei dati continuino anche quando l’app è in background, ma nel caso in cui l’app passi in background
-    1. l’app stessa non deve bloccarsi e deve rimanere in uno stato consistente.
+## Project Specifications
 
-Le immagini possono essere acquisite mediante la classe [`Camera`](https://developer.android.com/guide/topics/media/camera) anche se è deprecata.
+The task is to implement an app that provides the average color detected by the camera.
 
-- Quale che sia il metodo di acquisizione utilizzato, si consiglia di
-    1. impostare la [dimensione](https://developer.android.com/reference/kotlin/android/hardware/Camera.Parameters#getsupportedpreviewsizes) e il [frame rate](https://developer.android.com/reference/kotlin/android/hardware/Camera.Parameters#getsupportedpreviewfpsrange) dell’anteprima ai valori minimi supportati dalla fotocamera del proprio dispositivo.
+- The first interface of the app must show
+    1. the camera preview and
+    2. the average value calculated for each of the three color components
+    3. with real-time updates
+- The second interface must show, for each of the three color components
+    1. the average values of the last five minutes
+    2. graphically
+    3. with real-time updates
+- It is not required for the calculation and recording of data to continue when the app is in the background, but in case the app goes into the background
+    1. the app itself must not crash and must remain in a consistent state.
 
-Per implementare la visualizzazione dei dati è consentito utilizzare librerie esterne.
+Images can be acquired using the [`Camera`](https://developer.android.com/guide/topics/media/camera) class even though it is deprecated.
 
-## Come l’app è stata implementata
+- Whatever the acquisition method used, it is recommended to
+    1. set the [size](https://developer.android.com/reference/kotlin/android/hardware/Camera.Parameters#getsupportedpreviewsizes) and [frame rate](https://developer.android.com/reference/kotlin/android/hardware/Camera.Parameters#getsupportedpreviewfpsrange) of the preview to the minimum values supported by the device's camera.
 
-### Funzionalità Principali
+External libraries can be used to implement data visualization.
 
-1. **Anteprima della Fotocamera**:
-    - Visualizzazione in tempo reale dell'anteprima della fotocamera.
-2. **Calcolo del Valore Medio per ciascuna Componente Colore**:
-    - Calcolo in tempo reale del valore medio dei componenti RGB per ogni frame acquisito.
-    - [**OpenCV**](https://opencv.org/links/): libreria utilizzata per l'elaborazione delle immagini che può essere utilizzata per ottimizzare i valori medi dei colori.
-3. **Visualizzazione Grafica dei Valori Medi degli Ultimi Cinque Minuti**:
-    - Grafico in tempo reale che mostra l'andamento delle componenti colore degli ultimi cinque minuti di acquisizione
-    - [**MPAndroidChart**](https://github.com/PhilJay/MPAndroidChart): Una libreria completa per creare grafici in tempo reale su Android. Facile da utilizzare e altamente personalizzabile.
+## How the App Was Implemented
 
-### Funzionalità Secondarie
+### Main Features
 
-1. **Supporto lingue**
-    - l’applicazione supporta in modo completo le lingue inglese (default) e italiano
-2. **Aggiornamento in Tempo Reale delle Interfacce**:
-    - Aggiornamento continuo e fluido dei valori e dei grafici durante l'uso dell'app
-    - [**`LiveData`**](https://developer.android.com/topic/libraries/architecture/livedata) e [**`ViewModel`**](https://developer.android.com/topic/libraries/architecture/viewmodel) : per la gestione e l'aggiornamento dei dati in modo reattivo ed efficiente
-    - [**`Room`**](https://developer.android.com/kotlin/multiplatform/room) : per lo storage di 5 minuti di rilevamento dati
-3. **UI Funzionante sia in Modalità Portrait che in Modalità Landscape**:
-    - Adattabilità dell'interfaccia utente per funzionare correttamente in entrambe le orientazioni del dispositivo.
-    - [**`ConstraintLayout`**](https://developer.android.com/training/constraint-layout): Un layout manager versatile che facilita la creazione di UI responsive e adattabili a diverse dimensioni di schermo e orientazioni.
-4. **Consistenza dello Stato dell'App in Background**:
-    - Gestione del ciclo di vita dell'app, in modo che non si blocchi e rimanga in uno stato consistente quando va in background.
-5. **Impostazione della Dimensione e del Frame Rate dell'Anteprima ai Valori Minimi Supportati**:
-    - Configurazione della fotocamera per utilizzare la dimensione di anteprima e il frame rate più bassi supportati dal dispositivo per ridurre il carico di elaborazione.
-6. **Ottimizzazione delle Prestazioni**:
-    - Implementate tecniche per ottimizzare le prestazioni dell'app, specialmente per quanto riguarda il calcolo dei valori medi e l'aggiornamento del grafico
-7. **Utilizzo di View Binding**:
-    - L'app utilizza il **View Binding** per interagire con le viste XML in modo sicuro ed efficiente.
-    - Il View Binding riduce il rischio di crash causati da errori di tipo `NullPointerException`, migliora la leggibilità del codice e facilita la manutenzione, poiché genera automaticamente le classi di binding per ogni layout XML, eliminando la necessità di chiamare `findViewById()`.
+1. **Camera Preview**:
+    - Real-time display of the camera preview.
+2. **Average Color Value Calculation**:
+    - Real-time calculation of the average RGB values for each captured frame.
+    - [**OpenCV**](https://opencv.org/): A library used for image processing that can be used to optimize the average color values.
+3. **Graphical Display of Average Values from the Last Five Minutes**:
+    - Real-time graph showing the trend of color components from the last five minutes of acquisition
+    - [**MPAndroidChart**](https://github.com/PhilJay/MPAndroidChart): A comprehensive library for creating real-time charts on Android. Easy to use and highly customizable.
 
-### Considerazioni Finali
+### Secondary Features
 
-L'uso di View Binding nel progetto garantisce che le interazioni con le viste siano sicure e prive di errori di runtime, migliorando al contempo la leggibilità e la manutenibilità del codice. Questa pratica, insieme all'uso di altre tecnologie e librerie come `LiveData`, `ViewModel`, `Room` e `ConstraintLayout`, contribuisce a creare un'app robusta e performante.
+1. **Language Support**
+    - The application fully supports both English (default) and Italian languages.
+2. **Real-Time Interface Updates**:
+    - Continuous and smooth updates of values and charts during app usage.
+    - [**LiveData**](https://developer.android.com/topic/libraries/architecture/livedata) and [**ViewModel**](https://developer.android.com/topic/libraries/architecture/viewmodel): for managing and updating data reactively and efficiently.
+    - [**Room**](https://developer.android.com/kotlin/multiplatform/room): for storing 5 minutes of data detection.
+3. **UI Functionality in Both Portrait and Landscape Modes**:
+    - Adaptability of the user interface to work correctly in both device orientations.
+    - [**ConstraintLayout**](https://developer.android.com/training/constraint-layout): A versatile layout manager that facilitates the creation of responsive and adaptable UIs for different screen sizes and orientations.
+4. **Consistent App State in Background**:
+    - Management of the app lifecycle to ensure it does not crash and remains in a consistent state when going into the background.
+5. **Setting Preview Size and Frame Rate to Minimum Supported Values**:
+    - Configuration of the camera to use the lowest supported preview size and frame rate to reduce processing load.
+6. **Performance Optimization**:
+    - Techniques implemented to optimize the app's performance, especially regarding the calculation of average values and chart updates.
+7. **Utilization of View Binding**:
+    - The app uses **View Binding** to interact with XML views safely and efficiently.
+    - View Binding reduces the risk of crashes caused by `NullPointerException` errors, improves code readability, and facilitates maintenance by automatically generating binding classes for each XML layout, eliminating the need to call `findViewById()`.
+
+### Final Considerations
+
+The use of View Binding in the project ensures that interactions with views are safe and free from runtime errors, while also improving code readability and maintainability. This practice, together with the use of other technologies and libraries such as `LiveData`, `ViewModel`, `Room`, and `ConstraintLayout`, contributes to creating a robust and performant app.
