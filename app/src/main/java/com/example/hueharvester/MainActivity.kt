@@ -19,7 +19,7 @@ import androidx.viewpager.widget.ViewPager
 import com.example.hueharvester.database.ColorData
 import com.example.hueharvester.database.ColorDataViewModel
 import com.example.hueharvester.database.ColorDataViewModelFactory
-import com.google.android.material.tabs.TabLayout
+import com.example.hueharvester.databinding.ActivityMainBinding
 import org.opencv.android.OpenCVLoader
 import org.opencv.core.CvType
 import org.opencv.core.Mat
@@ -31,11 +31,9 @@ import java.lang.NullPointerException
  */
 class MainActivity : AppCompatActivity() {
 
-    private lateinit var viewPager: ViewPager
-    private lateinit var tabLayout: TabLayout
+    private lateinit var binding: ActivityMainBinding
     private lateinit var realTimeRGBFragment: RealTimeRGBFragment
     private lateinit var lineGraphFragment: LineGraphFragment
-    private lateinit var cameraPreview: SurfaceView
     private var camera: Camera? = null
 
     private var isCameraReleased = true
@@ -56,7 +54,8 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         //Log.d(MAIN, "onCreate")
 
-        setContentView(R.layout.activity_main)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        setContentView(binding.root)
 
         // Initialize OpenCV
         if (!OpenCVLoader.initDebug())
@@ -64,14 +63,10 @@ class MainActivity : AppCompatActivity() {
         else
             Log.d(MAIN, "OpenCV loaded Successfully!")
 
-        cameraPreview = findViewById(R.id.camera_preview)
-        viewPager = findViewById(R.id.view_pager)
-        tabLayout = findViewById(R.id.tab_layout)
+        setupViewPager(binding.viewPager)
+        binding.tabLayout.setupWithViewPager(binding.viewPager, true)
 
-        setupViewPager(viewPager)
-        tabLayout.setupWithViewPager(viewPager, true)
-
-        val adapter = viewPager.adapter as ViewPagerAdapter
+        val adapter = binding.viewPager.adapter as ViewPagerAdapter
         realTimeRGBFragment = adapter.getFragment(0) as RealTimeRGBFragment
         lineGraphFragment = adapter.getFragment(1) as LineGraphFragment
 
@@ -163,8 +158,7 @@ class MainActivity : AppCompatActivity() {
      */
     private fun setupCameraPreview() {
         //Log.v(MAIN, "Setting up camera preview")
-        val holder: SurfaceHolder = cameraPreview.holder
-
+        val holder: SurfaceHolder = binding.cameraPreview.holder
         holder.addCallback(object : SurfaceHolder.Callback {
             override fun surfaceCreated(holder: SurfaceHolder) {
                 //Log.i(MAIN, "Surface created")
@@ -179,9 +173,8 @@ class MainActivity : AppCompatActivity() {
             override fun surfaceChanged(holder: SurfaceHolder, format: Int, width: Int, height: Int) {
                 if (isSurfaceCreated) { // possible calling of surfaceChanged before surfaceCreated
                     //Log.i(MAIN, "Surface changed from [${savedPreviewSize?.get(0)} x ${savedPreviewSize?.get(1)}] to [$width x $height]")
-                    if (camera != null && (width != savedPreviewSize?.get(0) || height != savedPreviewSize?.get(
-                            1
-                        ))
+                    if (camera != null &&
+                        (width != savedPreviewSize?.get(0) || height != savedPreviewSize?.get(1))
                     ) {
                         //Log.v(MAIN, "surfaceChanged calls initializeCameraAsync")
                         camera?.stopPreview()
@@ -356,7 +349,7 @@ class MainActivity : AppCompatActivity() {
                 Toast.makeText(this, getString(R.string.camera_permission_granted), Toast.LENGTH_SHORT).show()
                 //Log.i(MAIN, "Camera permission granted")
                 //Log.v(MAIN, "requestCameraPermission calls initializeCameraAsync")
-                initializeCamera(cameraPreview.holder)
+                initializeCamera(binding.cameraPreview.holder)
             } else {
                 Toast.makeText(this, getString(R.string.camera_permission_required), Toast.LENGTH_SHORT).show()
             }

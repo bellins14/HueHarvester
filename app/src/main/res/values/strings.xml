@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name" translatable="false">Hue Harvester</string>
+    <string name="app_name">Hue Harvester (EN)</string>
     <string name="RGB_values">RGB Values</string>
     <string name="line_graph">Line Graph</string>
     <string name="no_data_text">Loading data…</string>

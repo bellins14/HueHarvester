@@ -6,7 +6,6 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity">
 
-
     <!-- Camera preview SurfaceView -->
     <SurfaceView
         android:id="@+id/camera_preview"
